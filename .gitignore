@@ -30,3 +30,6 @@
 # Eclipse files
 .project
 .cproject
+
+#Eclipse folders
+Debug
