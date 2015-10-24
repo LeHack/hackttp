@@ -1,6 +1,7 @@
 //
 // Created by atticus on 10/20/15.
 //
+#include <cstring>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -16,19 +17,23 @@ void newSocketFunction(int socket_fd){
     char reply[100], *msg;
     int msglen;
 
-    std::string string = "Welcome to HACKttp: " + std::to_string(socket_fd) + "\n";
+    std::string string = "Welcome to HACKttp: " + std::to_string(socket_fd) + "\nYour message: ";
     //msg = "Welcome to HACKttp " + (char) socket_fd;
     msg = (char *) string.c_str();
-    msglen = strlen(msg);
-    send(socket_fd, msg, msglen, 0);
+    send(socket_fd, msg, strlen(msg), 0);
 
+    std::string response;
     while(1){
         memset(&reply, 0, sizeof reply);
-        if(recv(socket_fd, reply, 100,0) <= 0) break;
-
-        send(socket_fd, reply, sizeof reply, 0);
+        if(recv(socket_fd, reply, 100, 0) <= 0) break;
+        response.append("HackTTP echo: ");
+        response.append(reply);
+		response.append("\nYour message: ");
+        msg = (char *)response.c_str();
+        send(socket_fd, msg, strlen(msg), 0);
         //reply[99] = '\0';
-        printf("%s",reply);
+        printf("Sent back: %s", response.c_str());
+        response.clear();
     }
 }
 
