@@ -8,7 +8,8 @@
 #include <netdb.h>
 #include <unistd.h>
 #include <stdio.h>
-#include <thread>
+#include <thread> // zastąpić pthread, nie używać new tylko malloc - podstawowe systemowe
+// fork/exec obsługa skryptów cgi
 
 #define HACKTTPPORT "8000"  // the port users will be connecting to
 #define BACKLOG 10          // how many pending connections queue will hold
