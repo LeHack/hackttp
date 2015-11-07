@@ -14,15 +14,18 @@
 
 int main() {
 	// Init basic classes
-	CmdLine cmdline();
-	Config config();
-	Logger logger();
-	Router router();
+	CmdLine cmdline;
+	Config config;
+	Logger logger(config.get_str_setting("log_path"), "Server");
 
 	// starting watching the incoming port using the router
-
+	std::string port = config.get_str_setting("port");
+	logger.info("Starting HackTTP at port: " + port);
+	Router router( config.get_int_setting("queue_size") );
+	router.watch(port);
 
 	// cleanup
+	logger.info("HackTTP shutting down");
 
 	return 0;
 }
