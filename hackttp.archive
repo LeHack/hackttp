@@ -1,0 +1,9 @@
+#!/bin/bash
+
+echo -n "Fetching fresh copy..."
+git clone http://github.com/LeHack/hackttp hackttp >& /dev/null
+echo "OK"
+echo -n "Creating archive..."
+zip -r HackTTP.zip hackttp/ -x '*/.git/*'
+rm -Rf hackttp
+echo "HackTTP.zip ready"
