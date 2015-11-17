@@ -2,6 +2,7 @@
 #define SRC_LOGGER_H_
 
 #include <iostream>
+#include <fstream>
 
 enum LogLevel { QUIET, WARNINGS, INFO, DEBUG };
 
@@ -20,6 +21,10 @@ public:
 class Logger : public LoggerBase {
 private:
 	std::string class_name;
+	std::string fullMessage;
+	std::string fullDateTimestamp;
+    bool isLoggingToFileEnabled = true;
+
 public:
 	Logger() {}
 	Logger(std::string name);

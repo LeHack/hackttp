@@ -8,7 +8,7 @@ class Config {
 		// to be replaced with some dynamic map struct
 		int queue_size = 10;
 		std::string port = "8000";
-		std::string log_path = "/some/log/path";
+		std::string log_path = "./log2";
 	public:
 		Config();
 		virtual ~Config();

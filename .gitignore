@@ -1,3 +1,6 @@
+# Different project files
+log
+
 # Compiled Object files
 *.slo
 *.lo
@@ -37,6 +40,8 @@ Debug
 .idea
 .settings
 
+#CLion files
 CMakeLists.txt
+
 # Archive
 HackTTP.zip
