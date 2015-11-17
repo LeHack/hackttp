@@ -34,9 +34,9 @@ Logger::Logger(std::string path, std::string name) : LoggerBase(path) {
     logFile.open("./log", std::fstream::out | std::fstream::app);
 
     if(logFile.is_open()){
-        std::cout << "Logfile is open for " << this->class_name <<", logging to file enabled" << std::endl;
+        std::cout <<"[" << this->class_name << "]" << " Logfile is open, logging to file enabled" << std::endl;
     } else {
-        std::cout << "Error opening logfile for " << this->class_name << ", disabling logging to file" <<std::endl;
+        std::cout <<"[" << this->class_name << "]" << "Error opening logfile, disabling logging to file" <<std::endl;
         isLoggingToFileEnabled = false;
     }
 }
