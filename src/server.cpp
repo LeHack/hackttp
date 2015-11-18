@@ -21,6 +21,7 @@ int main() {
 	// starting watching the incoming port using the router
 	std::string port = config.get_str_setting("port");
 	logger.info("Starting HackTTP at port: " + port);
+	logger.info(config.get_str_setting("config_test"));
 	Router router( config.get_int_setting("queue_size") );
 	router.watch(port);
 

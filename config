@@ -1,0 +1,9 @@
+port=8000
+log_path=./log
+config_test=Config Loaded, hello from server.cpp!
+;
+
+Config manual:
+;  signals the end of the config file, anything below ; is ignored. WARNIRNG: has to be placed below the final line
+=  means that the following value will be converted to string
+//== means that the following value will be treated as int
