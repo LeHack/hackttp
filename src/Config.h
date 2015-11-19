@@ -2,14 +2,22 @@
 #define SRC_CONFIG_H_
 #include <iostream>
 #include <exception>
+#include <vector>
 
 class Config {
 	private:
 		// to be replaced with some dynamic map struct
 		int queue_size = 10;
-		std::string port = "8000";
-		std::string log_path = "./log2";
-	public:
+        std::string configString;
+        std::string delimiter;
+        std::string configRelevantString;
+        std::string configLine;
+        std::string key;
+        std::string returnString;
+        size_t position;
+        void loadConfigFileToMap();
+
+public:
 		Config();
 		virtual ~Config();
 		int get_int_setting(std::string);

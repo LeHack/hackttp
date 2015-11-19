@@ -14,37 +14,36 @@
 std::map<string, string> configMap;
 
 Config::Config() {
-	// TODO Auto-generated constructor stub
+    loadConfigFileToMap();
+}
+    //TODO: podzielić na prepareVariables() i reloadConfig() - ta druga przyda się później
+void Config::loadConfigFileToMap(){
     int configFileDescriptor = open("./config", O_RDONLY);
     char configFileContents[CONFIG_SIZE];
     read(configFileDescriptor, &configFileContents, CONFIG_SIZE);
 
     //Obcina nieistotną końcówkę configa
-    std::string configString(configFileContents);
-    std::string delimiter = ";";
-    std::string configRelevantString = configString.substr(0, configString.find(delimiter));
+    configString = std::string(configFileContents);
+    delimiter = ";";
+    configRelevantString = configString.substr(0, configString.find(delimiter));
 
     //Dzieli na linie
+    vector<string> vectorOfLines;
     delimiter = "\n";
-    size_t pos;
-    std::string token;
-    vector<string> tokens;
-    while ((pos = configRelevantString.find(delimiter)) != std::string::npos) {
-        token = configRelevantString.substr(0, pos);
-        tokens.push_back(token);
-        configRelevantString.erase(0, pos + delimiter.length());
+    while ((position = configRelevantString.find(delimiter)) != std::string::npos) {
+        configLine = configRelevantString.substr(0, position);
+        vectorOfLines.push_back(configLine);
+        configRelevantString.erase(0, position + delimiter.length());
     }
 
     //Dzieli linie na 2 wartości, które wrzuca do mapy
-    std::string tmpString;
-    size_t pos2;
     delimiter = "=";
-    for (std::vector<string>::const_iterator i = tokens.begin(); i != tokens.end(); ++i){
-        tmpString = *i;
-        while ((pos2 = tmpString.find(delimiter)) != std::string::npos) {
-            token = tmpString.substr(0, pos2);
-            tmpString.erase(0, pos2 + delimiter.length());
-            configMap.insert(pair<string, string>(token, tmpString));
+    for (std::vector<string>::const_iterator i = vectorOfLines.begin(); i != vectorOfLines.end(); ++i){
+        configLine = *i;
+        while ((position = configLine.find(delimiter)) != std::string::npos) {
+            key = configLine.substr(0, position);
+            configLine.erase(0, position + delimiter.length());
+            configMap.insert(pair<string, string>(key, configLine));
         }
     }
 }
@@ -55,18 +54,22 @@ Config::~Config() {
 
 
 int Config::get_int_setting(std::string setting_name) {
-	int value = -1;
-	if (setting_name == "queue_size") {
-		value = this->queue_size;
+	int returnInt = -1;
+    try {
+        returnInt = atoi(configMap.at(setting_name).c_str());
+        //Dodać obsługę błędu: próba konwersji abcabc na int
+    } catch (out_of_range){
+        throw ConfigException("Unknown int option passed: " + setting_name);
 	}
-	else {
-		throw ConfigException("Unknown int option passed: " + setting_name);
-	}
-	return value;
+	return returnInt;
 }
 
 
 std::string Config::get_str_setting(std::string setting_name) {
-    //Dodać obsługę błędów!
-    return configMap.at(setting_name);
+    try{
+        returnString = configMap.at(setting_name);
+    } catch (out_of_range) {
+        throw ConfigException("Unknown string option passed: " + setting_name);
+    }
+    return returnString;
 }
