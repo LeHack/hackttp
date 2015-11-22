@@ -16,17 +16,20 @@ int main() {
 	// Init basic classes
 	CmdLine cmdline;
 	Config config;
-	Logger logger(config.get_str_setting("log_path"), "Server");
+    Logger logger(config.get_str_setting("log_path"), "Server");
+    //"hello from server.cpp" message, to be removed
+    logger.info(config.get_str_setting("config_test"));
 
-	// starting watching the incoming port using the router
-	std::string port = config.get_str_setting("port");
-	logger.info("Starting HackTTP at port: " + port);
+    if(config.get_str_setting("start_full_server") == "true") {
+        // starting the full server
+        std::string port = config.get_str_setting("port");
+        logger.info("Starting HackTTP at port: " + port);
 
-	//"hello from server.cpp" message, to be removed
-	logger.info(config.get_str_setting("config_test"));
-	Router router( config.get_int_setting("queue_size") );
-	router.watch(port);
-
+        Router router(config.get_int_setting("queue_size"));
+        router.watch(port);
+    } else {
+        logger.info("Running in test mode");
+    }
 	// cleanup
 	logger.info("HackTTP shutting down");
 

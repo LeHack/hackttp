@@ -21,6 +21,7 @@ void Config::loadConfigFileToMap(){
     int configFileDescriptor = open("./config", O_RDONLY);
     char configFileContents[CONFIG_SIZE];
     read(configFileDescriptor, &configFileContents, CONFIG_SIZE);
+    close(configFileDescriptor);
 
     //Removes everything after ; in config file
     configString = std::string(configFileContents);

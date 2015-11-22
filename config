@@ -2,9 +2,10 @@ port=8000
 log_path=./log
 queue_size=10
 config_test=Config Loaded, hello from server.cpp!
+start_full_server=false
 ;
 
 Config manual:
 ;  signals the end of the config file, anything below ; is ignored. WARNIRNG: has to be placed BELOW the final line
-=  means that the following value will be converted to string
-//== means that the following value will be treated as int
+config_test - test setting for config, far from essential
+start_full_server - less hassle while testing logger
