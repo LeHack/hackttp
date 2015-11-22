@@ -1,7 +1,9 @@
 #include "Logger.h"
-#include <iostream>
-#include <fstream>
 #include <ctime>
+#include <fcntl.h>
+#include <unistd.h>
+#include <mutex>
+#include <string.h>
 
 /*
   * Simple logging utility with:
@@ -12,8 +14,9 @@
 
 // global
 std::string log_path;
-std::fstream logFile;
 std::time_t epochTimestamp;
+int logFileDescriptor;
+std::mutex mutex;
 
 //Po co jest LoggerBase?
 
@@ -30,35 +33,47 @@ Logger::Logger(std::string name) {
 }
 
 Logger::Logger(std::string path, std::string name) : LoggerBase(path) {
-	this->class_name = name;
-    logFile.open("./log", std::fstream::out | std::fstream::app);
+    std::string loggerStatus;
+    const char* cLoggerStatus;
 
-    if(logFile.is_open()){
-        std::cout <<"[" << this->class_name << "]" << " Logfile is open, logging to file enabled" << std::endl;
-    } else {
-        std::cout <<"[" << this->class_name << "]" << "Error opening logfile, disabling logging to file" <<std::endl;
+    this->class_name = name;
+    logFileDescriptor = open(log_path.c_str(), O_WRONLY | O_APPEND);
+
+    if(logFileDescriptor < 0){
+        loggerStatus = "[" + this->class_name + "]" + "Error opening logfile, disabling logging to file\nError: " + strerror(errno);
+        cLoggerStatus = loggerStatus.c_str();
+        write(2, cLoggerStatus, strlen(cLoggerStatus));
         isLoggingToFileEnabled = false;
+    } else {
+        loggerStatus = "[" + this->class_name + "]" + " Logfile is open, logging to file enabled\n";
+        cLoggerStatus = loggerStatus.c_str();
+        write(1, cLoggerStatus, strlen(cLoggerStatus));
     }
 }
 
 Logger::~Logger() {
-    //Otaczać ifami?
-    logFile.close();
+    close(logFileDescriptor);
 }
 
 void Logger::_log(std::string msg, int level) {
-    epochTimestamp = std::time(nullptr);
-    fullDateTimestamp = std::asctime(std::localtime(&epochTimestamp));
-    fullMessage = "[" +
-                  this->class_name + " " +
-                  fullDateTimestamp.substr(0, fullDateTimestamp.size()-1) + "] " +
-                  msg + "\n";
-
-	if (this->current_log_level >= level) {
-        std::cout << fullMessage;
-        if (isLoggingToFileEnabled) {
-            logFile << fullMessage;
-            logFile.flush();
+    if(this->current_log_level >= level) {
+        mutex.lock();
+        epochTimestamp = std::time(nullptr);
+        fullDateTimestamp = std::asctime(std::localtime(&epochTimestamp));
+        fullMessage = "[" +
+                      this->class_name + " " +
+                      fullDateTimestamp.substr(0, fullDateTimestamp.size() - 1) + "] " +
+                      msg + "\n";
+        if(!isLoggingToFileEnabled){
+            fullMessage = "WARNING: Logging to file disabled " + fullMessage;
         }
+
+        const char* cFullMessage = fullMessage.c_str();
+
+        write(1, cFullMessage, strlen(cFullMessage));
+        if (isLoggingToFileEnabled) {
+                write(logFileDescriptor, cFullMessage, strlen(cFullMessage));
+            }
+        mutex.unlock();
     }
 }

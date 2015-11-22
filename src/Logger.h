@@ -1,8 +1,6 @@
 #ifndef SRC_LOGGER_H_
 #define SRC_LOGGER_H_
-
-#include <iostream>
-#include <fstream>
+#include <string>
 
 enum LogLevel { QUIET, WARNINGS, INFO, DEBUG };
 
