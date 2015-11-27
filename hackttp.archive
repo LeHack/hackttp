@@ -6,4 +6,4 @@ echo "OK"
 echo -n "Creating archive..."
 zip -r HackTTP.zip hackttp/ -x '*/.git/*'
 rm -Rf hackttp
-echo "HackTTP.zip ready"
+echo "etap_$1.zip ready"

@@ -40,7 +40,7 @@ Logger::Logger(std::string path, std::string name) : LoggerBase(path) {
     logFileDescriptor = open(log_path.c_str(), O_WRONLY | O_APPEND);
 
     if(logFileDescriptor < 0){
-        loggerStatus = "[" + this->class_name + "]" + "Error opening logfile, disabling logging to file\nError: " + strerror(errno);
+        loggerStatus = "[" + this->class_name + "]" + " Error opening logfile, disabling logging to file\nError: " + strerror(errno) + "\n";
         cLoggerStatus = loggerStatus.c_str();
         write(2, cLoggerStatus, strlen(cLoggerStatus));
         isLoggingToFileEnabled = false;
@@ -72,8 +72,8 @@ void Logger::_log(std::string msg, int level) {
 
         write(1, cFullMessage, strlen(cFullMessage));
         if (isLoggingToFileEnabled) {
-                write(logFileDescriptor, cFullMessage, strlen(cFullMessage));
-            }
+            write(logFileDescriptor, cFullMessage, strlen(cFullMessage));
+        }
         mutex.unlock();
     }
 }

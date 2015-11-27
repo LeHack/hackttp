@@ -6,7 +6,8 @@ enum LogLevel { QUIET, WARNINGS, INFO, DEBUG };
 
 class LoggerBase {
 protected:
-	int current_log_level = INFO;
+    // TODO: should be loaded from Config
+	int current_log_level = DEBUG;
 public:
 	LoggerBase() {}
 	LoggerBase(std::string path);
