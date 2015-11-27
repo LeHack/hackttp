@@ -20,16 +20,16 @@ int main() {
     //"hello from server.cpp" message, to be removed
     logger.info(config.get_str_setting("config_test"));
 
-//    if(config.get_str_setting("start_full_server") == "true") {
+    if(config.get_str_setting("start_full_server") == "true") {
         // starting the full server
         std::string port = config.get_str_setting("port");
         logger.info("Starting HackTTP at port: " + port);
 
         Router router(config.get_int_setting("queue_size"), port);
         router.watch();
-//    } else {
-//        logger.info("Running in test mode");
-//    }
+    } else {
+        logger.info("Running in test mode");
+    }
 	// cleanup
 	logger.info("HackTTP shutting down");
 

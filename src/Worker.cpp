@@ -33,9 +33,10 @@ void Worker::handle_request() {
     send(this->socket_fd, msg, strlen(msg), 0);
 
     std::string response;
-    while(1){
+    while(true){
         memset(&reply, 0, sizeof reply);
-        if(recv(this->socket_fd, reply, 100, 0) <= 0) break;
+        if(recv(this->socket_fd, reply, 100, 0) <= 0)
+            break;
         response.append("HackTTP echo: ");
         response.append(reply);
         response.append("\nYour message: ");
@@ -45,4 +46,7 @@ void Worker::handle_request() {
         printf("Sent back: %s", response.c_str());
         response.clear();
     }
+    this->logger.debug("Reqest handling done");
+
+    return;
 }
