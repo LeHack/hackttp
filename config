@@ -2,7 +2,7 @@ port=8000
 log_path=./log
 queue_size=10
 config_test=Config Loaded, hello from server.cpp!
-start_full_server=false
+start_full_server=true
 ;
 
 Config manual:

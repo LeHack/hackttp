@@ -1,13 +1,12 @@
-#include <cstring>
-#include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
 #include <unistd.h>
-#include <stdio.h>
-#include <pthread.h>
+#include <thread>
+#include <chrono>
 
 #include "Router.h"
+#include "Manager.h"
 
 /*
  * router - watches the designated port and for launches a new worker for every connection
@@ -15,79 +14,65 @@
  * Handles *some* of the HTTP errors
  */
 
-Router::Router(int qsize) {
+Router::Router(int qsize, std::string port) {
 	this->queue_size = qsize;
 	this->logger = Logger("Router");
+	this->port = port;
+    // initialize the socket
+    this->init_socket();
 }
 
 Router::~Router() {
-	// TODO Auto-generated destructor stub
+    // close our socket
+    close(this->listening_socket_fd);
+    // free the address
+    freeaddrinfo(addr);
 }
 
-void *newSocketFunction(void *socket_fd);
-void Router::watch(std::string port) {
-	this->logger.debug("starting with port" + port);
-
+void Router::watch() {
+	socklen_t addr_size;
     struct sockaddr_storage incoming_connection_info;
-    socklen_t addr_size;
-    struct addrinfo listening_socket_description, *results;
-    int listening_socket_fd, new_socket_fd;
+    int handling_socket;
+
+    this->logger.debug("watching port: " + this->port);
+
+    // create a manager object to handle different threads
+    Manager manager;
+
+    // we work until we're told to stop working
+    while (true) {
+        // listen for new connections
+        listen(this->listening_socket_fd, this->queue_size);
+
+        addr_size = sizeof incoming_connection_info;
+        handling_socket = accept(listening_socket_fd, (struct sockaddr *) &incoming_connection_info, &addr_size);
+        this->logger.info("Handling incoming connection from: ");
+        // this will create a new worker to work with
+        // TODO: handle too many workers exception
+        manager.handle_request(handling_socket);
+
+        // sleep a little
+        std::this_thread::sleep_for (std::chrono::seconds(1));
+    }
+}
+
+int Router::init_socket() {
+    struct addrinfo listening_socket_description;
 
     // first, load up address structs with getaddrinfo():
+    // TODO error handling (what if there's no memory available)
     memset(&listening_socket_description, 0, sizeof listening_socket_description);
 
     listening_socket_description.ai_family = AF_UNSPEC;  // use IPv4 or IPv6, whichever
     listening_socket_description.ai_socktype = SOCK_STREAM;
     listening_socket_description.ai_flags = AI_PASSIVE;     // fill in my IP for me
-    getaddrinfo(NULL, port.c_str(), &listening_socket_description, &results);
+    getaddrinfo(NULL, this->port.c_str(), &listening_socket_description, &this->addr);
 
-    // make a socket, bind it, and listen on it:
-    listening_socket_fd = socket(results->ai_family, results->ai_socktype, results->ai_protocol);
-    bind(listening_socket_fd, results->ai_addr, results->ai_addrlen);
+    // TODO error handling (what if we cannot open the socket)
+    int listening_socket = socket(this->addr->ai_family, this->addr->ai_socktype, this->addr->ai_protocol);
 
-    listen(listening_socket_fd, this->queue_size);
+    // TODO error handling (what if we can't bind)
+    bind(listening_socket, this->addr->ai_addr, this->addr->ai_addrlen);
 
-    addr_size = sizeof incoming_connection_info;
-    new_socket_fd = accept(listening_socket_fd, (struct sockaddr *) &incoming_connection_info, &addr_size);
-    this->logger.info("handling connection");
-
-    pthread_t t1;
-    this->logger.debug("creating new thread");
-    pthread_create(&t1, NULL, newSocketFunction, (void *) &new_socket_fd);
-    pthread_join(t1, NULL);
-
-    this->logger.debug("closing connection");
-    freeaddrinfo(results);
-    close(listening_socket_fd);
-    close(new_socket_fd);
-
-    this->logger.debug("done");
-}
-
-// Possibly this code will be moved and divided to manager/worker
-// that's why I'm leaving this out of the Router:: class
-void *newSocketFunction(void *socket_fd_ptr){
-	int *socket_fd = (int *)socket_fd_ptr;
-    char reply[100], *msg;
-
-    std::string string = "Welcome to HACKttp: " + std::to_string(*socket_fd) + "\nYour message: ";
-    //msg = "Welcome to HACKttp " + (char) socket_fd;
-    msg = (char *) string.c_str();
-    send(*socket_fd, msg, strlen(msg), 0);
-
-    std::string response;
-    while(1){
-        memset(&reply, 0, sizeof reply);
-        if(recv(*socket_fd, reply, 100, 0) <= 0) break;
-        response.append("HackTTP echo: ");
-        response.append(reply);
-		response.append("\nYour message: ");
-        msg = (char *)response.c_str();
-        send(*socket_fd, msg, strlen(msg), 0);
-        //reply[99] = '\0';
-        printf("Sent back: %s", response.c_str());
-        response.clear();
-    }
-
-    return NULL;
+    return listening_socket;
 }
