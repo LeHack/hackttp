@@ -1,9 +1,13 @@
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <errno.h>
 #include <netdb.h>
 #include <unistd.h>
 #include <thread>
 #include <chrono>
+#include <cstring>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 #include "Router.h"
 #include "Manager.h"
@@ -19,7 +23,7 @@ Router::Router(int qsize, std::string port) {
 	this->logger = Logger("Router");
 	this->port = port;
     // initialize the socket
-    this->init_socket();
+	this->listening_socket_fd = this->init_socket();
 }
 
 Router::~Router() {
@@ -29,9 +33,17 @@ Router::~Router() {
     freeaddrinfo(addr);
 }
 
+void *get_in_addr(struct sockaddr *sa) {
+    if (sa->sa_family == AF_INET) {
+        return &(((struct sockaddr_in*)sa)->sin_addr);
+    }
+
+    return &(((struct sockaddr_in6*)sa)->sin6_addr);
+}
+
 void Router::watch() {
 	socklen_t addr_size;
-    struct sockaddr_storage incoming_connection_info;
+    struct sockaddr_storage client;
     int handling_socket;
 
     this->logger.debug("watching port: " + this->port);
@@ -44,15 +56,20 @@ void Router::watch() {
         // listen for new connections
         listen(this->listening_socket_fd, this->queue_size);
 
-        addr_size = sizeof incoming_connection_info;
-        handling_socket = accept(listening_socket_fd, (struct sockaddr *) &incoming_connection_info, &addr_size);
-        this->logger.info("Handling incoming connection from: ");
-        // this will create a new worker to work with
-        // TODO: handle too many workers exception
-        manager.handle_request(handling_socket);
+        addr_size = sizeof client;
+        handling_socket = accept(this->listening_socket_fd, (struct sockaddr *) &client, &addr_size);
+        if (handling_socket < 0) {
+            char * err = std::strerror(errno);
+            throw RouterException("Error when accepting connection: " + std::string(err ? err : "unknown error"));
+        }
 
-        // sleep a little
-        std::this_thread::sleep_for (std::chrono::seconds(1));
+        struct sockaddr_in *sin = (struct sockaddr_in *)&client;
+        char client_addr[INET6_ADDRSTRLEN];
+        inet_ntop(AF_INET, &sin->sin_addr, client_addr, sizeof client_addr);
+        this->logger.info("Handling incoming connection from: " + std::string(client_addr));
+        // this will create a new worker to work with
+        // TODO: add try/catch and handle too many workers exception
+        manager.handle_request(handling_socket);
     }
 }
 
@@ -70,9 +87,18 @@ int Router::init_socket() {
 
     // TODO error handling (what if we cannot open the socket)
     int listening_socket = socket(this->addr->ai_family, this->addr->ai_socktype, this->addr->ai_protocol);
+    if (listening_socket < 0) {
+        char * err = std::strerror(errno);
+        throw RouterException("Error opening socket: " + std::string(err ? err : "unknown error"));
+    }
 
     // TODO error handling (what if we can't bind)
-    bind(listening_socket, this->addr->ai_addr, this->addr->ai_addrlen);
+    int check = bind(listening_socket, this->addr->ai_addr, this->addr->ai_addrlen);
+    if (check < 0) {
+        char * err = std::strerror(errno);
+        throw RouterException("Error binding socket: " + std::string(err ? err : "unknown error"));
+    }
 
+    this->logger.debug("Got socket: " + std::to_string(listening_socket));
     return listening_socket;
 }

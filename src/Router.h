@@ -20,4 +20,19 @@ public:
 	void watch();
 };
 
+using namespace std;
+// Possibly we could also add a stack trace here:
+// http://stackoverflow.com/questions/353180/how-do-i-find-the-name-of-the-calling-function
+class RouterException: public exception {
+    std::string reason;
+
+    public:
+        RouterException(std::string msg = "Unknown exception") {
+            reason = msg;
+        }
+        virtual const char* what() const throw() {
+            return reason.c_str();
+        }
+};
+
 #endif /* SRC_ROUTER_H_ */
