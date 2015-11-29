@@ -28,7 +28,6 @@ Worker::~Worker() {
 	close(this->socket_fd);
 }
 
-//void read_static_file(std::string path, char * data);
 std::string get_working_path();
 
 void Worker::handle_request() {
@@ -40,7 +39,7 @@ void Worker::handle_request() {
     if(recv(this->socket_fd, request, HTTP_REQUEST_LENGTH, 0) <= 0) {
         // TODO replace with proper HTTP response
         char * err = std::strerror(errno);
-        throw WorkerException("Error while reading request: " + std::string(err ? err : "unknown error"));
+        throw Worker::Exception("Error while reading request: " + std::string(err ? err : "unknown error"));
     }
 
     // get the static file contents
@@ -48,8 +47,8 @@ void Worker::handle_request() {
     int space_count = 0;
     size_t pos = 0, prev_pos = 0;
     while (space_count < 2) {
-        prev_pos = pos;
-        if ((pos = req_str.find(" ", prev_pos+1)) != std::string::npos) {
+        prev_pos = pos + 1;
+        if ((pos = req_str.find(" ", prev_pos)) != std::string::npos) {
             space_count++;
         }
         else
@@ -59,83 +58,75 @@ void Worker::handle_request() {
     char * data;
     if (space_count == 2) {
         std::string file_path = req_str.substr(prev_pos, pos-prev_pos);
-//        data = "Contents of file at: " + file_path + "\nUsing request: " + req_str;
-        if (file_path.compare("/"))
-            file_path = "/index.txt";
+        // add simple CGI handling
 
-        file_path = get_working_path() + file_path;
-        int fd = open(file_path.c_str(), O_RDONLY);
-        if (fd < 0) {
-            // TODO: replace with a proper HTTP CODE
-            char * err = std::strerror(errno);
-            throw WorkerException("Error while reading file contents at " + file_path + ": " + std::string(err ? err : "unknown error"));
+        try {
+            data = read_static_file(file_path);
         }
-
-        this->logger.debug("Opened file: " + file_path);
-
-        long fsize = lseek(fd, 0, SEEK_END);
-        lseek(fd, 0, SEEK_SET);
-
-        this->logger.debug("File size: " + std::to_string(fsize));
-        data = (char *) malloc(fsize+1);
-        this->logger.debug("Memory assigned");
-        read(fd, &data, fsize);
-        this->logger.debug("Data read");
-        close(fd);
-        // add null termination
-        this->logger.debug("... and null-terminated");
-        data[fsize] = '\0';
-
-//        this->logger.debug("File data: " + std::string(data));
-//        read_static_file(file_path, data);
+        catch (Worker::FileNotFound &e) {
+            this->logger.debug("Got exception while handling request: " + std::string(e.what()));
+            char * contents = read_static_file("/errors/404.html");
+            data = (char *) malloc(strlen(contents) + file_path.length() - 3);
+            sprintf(data, contents, file_path.substr(1).c_str());
+        }
     }
     else {
-        data = (char*) std::string("Error, could not parse request").c_str();
+        data = (char*) std::string("<h1>Error, could not parse request</h1><pre>" + req_str + "</pre>").c_str();
     }
 
-//    data.append("Welcome to HACKttp: " + std::to_string(this->socket_fd) + "<br/>Your message: ");
-//    data.append(file_path);
-//    send_msg(data);
+    // apend standard response headers
+    // TODO: move this to BasicHTTP handling
+    char * headers = (char *) std::string(
+        "HTTP/1.x 200 OK\nServer: HackTTP\nConnection: close\nContent-Type: text/html; charset=UTF-8\n\n"
+    ).c_str();
 
-    // now answer
-//    printf("Sending data: %s\n", data);
-    if (send(this->socket_fd, data, strlen(data), 0) < 0) {
-        char * err = std::strerror(errno);
-        throw WorkerException("Error while reading request: " + std::string(err ? err : "unknown error"));
-    }
+    // now first send the headers
+    send_msg(headers);
+
+    // then the data
+    send_msg(data);
+
     free(data);
 
-    this->logger.debug("Reqest handling done");
+    this->logger.debug("Request handling done");
 
     return;
 }
 
-void Worker::send_msg(std::string msg) {
-    char *msgc = (char *) msg.c_str();
-    send(this->socket_fd, msgc, strlen(msgc), 0);
+void Worker::send_msg(char * msgc) {
+    if (send(this->socket_fd, msgc, strlen(msgc), 0) < 0) {
+        char * err = std::strerror(errno);
+        throw Worker::Exception("Error while sending response to request: " + std::string(err ? err : "unknown error"));
+    }
     return;
 }
 
-//void read_static_file(std::string path, char * data) {
-//    // prepend cwd() to path
-//    path = get_working_path() + path;
-//    int fd = open(path.c_str(), O_RDONLY);
-//    if (fd < 0) {
-//        // TODO: replace with a proper HTTP CODE
-//        char * err = std::strerror(errno);
-//        throw WorkerException("Error while reading file contents at " + path + ": " + std::string(err ? err : "unknown error"));
-//    }
-//
-//    lseek(fd, 0, SEEK_END);
-//    long fsize = lseek(fd, 0, SEEK_CUR);
-//    lseek(fd, 0, SEEK_SET);
-//
-//    data = (char *) malloc(fsize + 1);
-//    read(fd, &data, fsize);
-//    close(fd);
-//
-//    return;
-//}
+char * Worker::read_static_file(std::string path) {
+    // prepend cwd() to path
+    if (path == "/")
+        path = "/index.html";
+
+    path = get_working_path() + path;
+    this->logger.debug("Reading file at: " + path);
+
+    int fd = open(path.c_str(), O_RDONLY);
+    if (fd < 0) {
+        // TODO: replace with a proper HTTP CODE
+        char * err = std::strerror(errno);
+        throw Worker::FileNotFound("Error while reading file contents at " + path + ": " + std::string(err ? err : "unknown error"));
+    }
+
+    lseek(fd, 0, SEEK_END);
+    long fsize = lseek(fd, 0, SEEK_CUR);
+    lseek(fd, 0, SEEK_SET);
+
+    char * data = (char *) malloc(fsize + 1);
+    read(fd, data, fsize);
+    close(fd);
+    data[fsize] = '\0';
+
+    return data;
+}
 
 std::string get_working_path() {
    char temp[PATH_MAX];

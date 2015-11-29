@@ -44,7 +44,7 @@ void Manager::handle_request(int socket_fd) {
     params[1] = socket_fd;
     if (pthread_create(&this->pool[worker_ind], NULL, worker_runner, (void *)params) < 0) {
         char * err = std::strerror(errno);
-        throw ManagerException("Error creating thread: " + std::string(err ? err : "unknown error"));
+        throw Manager::Exception("Error creating thread: " + std::string(err ? err : "unknown error"));
     }
 
     return;
@@ -61,7 +61,7 @@ int Manager::get_free_worker_index() {
     }
 
     if (free_worker < 0)
-        throw ManagerException("Max workers exceeded, no free worker available");
+        throw Manager::Exception("Max workers exceeded, no free worker available");
 
     this->logger.debug("Using worker: " + std::to_string(free_worker));
     return free_worker;

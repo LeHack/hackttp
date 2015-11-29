@@ -1,8 +1,7 @@
 #ifndef SRC_ROUTER_H_
 #define SRC_ROUTER_H_
-#include <cstring>
-#include <iostream>
 
+#include "Exceptions.h"
 #include "Logger.h"
 
 class Router {
@@ -18,21 +17,13 @@ public:
 	Router(int qsize, std::string port);
 	virtual ~Router();
 	void watch();
-};
 
-using namespace std;
-// Possibly we could also add a stack trace here:
-// http://stackoverflow.com/questions/353180/how-do-i-find-the-name-of-the-calling-function
-class RouterException: public exception {
-    std::string reason;
-
-    public:
-        RouterException(std::string msg = "Unknown exception") {
-            reason = msg;
-        }
-        virtual const char* what() const throw() {
-            return reason.c_str();
-        }
+	class Exception: public BaseException {
+	    public:
+	        Exception(std::string msg = "Unknown router exception") {
+	            reason = msg;
+	        }
+	};
 };
 
 #endif /* SRC_ROUTER_H_ */

@@ -1,8 +1,8 @@
 #ifndef SRC_MANAGER_H_
 #define SRC_MANAGER_H_
 
+#include "Exceptions.h"
 #include "Logger.h"
-#include "Worker.h"
 
 class Manager {
 private:
@@ -15,22 +15,13 @@ public:
 	Manager();
 	virtual ~Manager();
 	void handle_request(int socket_fd);
-};
 
-
-using namespace std;
-// Possibly we could also add a stack trace here:
-// http://stackoverflow.com/questions/353180/how-do-i-find-the-name-of-the-calling-function
-class ManagerException: public exception {
-    std::string reason;
-
-    public:
-        ManagerException(std::string msg = "Unknown exception") {
-            reason = msg;
-        }
-        virtual const char* what() const throw() {
-            return reason.c_str();
-        }
+	class Exception: public BaseException {
+	    public:
+	        Exception(std::string msg = "Unknown manager exception") {
+	            reason = msg;
+	        }
+	};
 };
 
 #endif /* SRC_MANAGER_H_ */

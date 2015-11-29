@@ -60,7 +60,7 @@ void Router::watch() {
         handling_socket = accept(this->listening_socket_fd, (struct sockaddr *) &client, &addr_size);
         if (handling_socket < 0) {
             char * err = std::strerror(errno);
-            throw RouterException("Error when accepting connection: " + std::string(err ? err : "unknown error"));
+            throw Router::Exception("Error when accepting connection: " + std::string(err ? err : "unknown error"));
         }
 
         struct sockaddr_in *sin = (struct sockaddr_in *)&client;
@@ -89,14 +89,14 @@ int Router::init_socket() {
     int listening_socket = socket(this->addr->ai_family, this->addr->ai_socktype, this->addr->ai_protocol);
     if (listening_socket < 0) {
         char * err = std::strerror(errno);
-        throw RouterException("Error opening socket: " + std::string(err ? err : "unknown error"));
+        throw Router::Exception("Error opening socket: " + std::string(err ? err : "unknown error"));
     }
 
     // TODO error handling (what if we can't bind)
     int check = bind(listening_socket, this->addr->ai_addr, this->addr->ai_addrlen);
     if (check < 0) {
         char * err = std::strerror(errno);
-        throw RouterException("Error binding socket: " + std::string(err ? err : "unknown error"));
+        throw Router::Exception("Error binding socket: " + std::string(err ? err : "unknown error"));
     }
 
     this->logger.debug("Got socket: " + std::to_string(listening_socket));
