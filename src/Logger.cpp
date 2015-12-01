@@ -27,7 +27,6 @@ LoggerBase::LoggerBase(std::string path) {
 }
 
 LoggerBase::~LoggerBase() {
-	// TODO Auto-generated destructor stub
 }
 
 Logger::Logger(std::string name) {

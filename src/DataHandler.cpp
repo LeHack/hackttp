@@ -9,11 +9,9 @@
  */
 
 DataHandler::DataHandler() {
-	// TODO Auto-generated constructor stub
 
 }
 
 DataHandler::~DataHandler() {
-	// TODO Auto-generated destructor stub
 }
 

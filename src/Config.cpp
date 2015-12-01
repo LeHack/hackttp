@@ -16,7 +16,6 @@ std::map<string, string> configMap;
 Config::Config() {
     loadConfigFileToMap();
 }
-    //TODO: podzielić na prepareVariables() i reloadConfig() - ta druga przyda się później
 void Config::loadConfigFileToMap(){
     int configFileDescriptor = open("./config", O_RDONLY);
     char configFileContents[CONFIG_SIZE];
@@ -50,7 +49,6 @@ void Config::loadConfigFileToMap(){
 }
 
 Config::~Config() {
-	// TODO Auto-generated destructor stub
 }
 
 

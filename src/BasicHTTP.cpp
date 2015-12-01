@@ -5,11 +5,9 @@
  */
 
 BasicHTTP::BasicHTTP() {
-	// TODO Auto-generated constructor stub
 
 }
 
 BasicHTTP::~BasicHTTP() {
-	// TODO Auto-generated destructor stub
 }
 
