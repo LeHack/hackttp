@@ -1,25 +1,16 @@
 #ifndef SRC_LOGGER_H_
 #define SRC_LOGGER_H_
 #include <string>
+#include "Config.h"
 #define QUIET 0
 #define WARNINGS 1
 #define INFO 2
 #define DEBUG 3
-//enum LogLevel { QUIET, WARNINGS, INFO, DEBUG };
 
-class LoggerBase {
+class Logger {
 protected:
-	int current_log_level = DEBUG;
-public:
-	LoggerBase() {}
-	LoggerBase(std::string path);
-	virtual ~LoggerBase();
+    int current_log_level = DEBUG;
 
-	virtual void _log(std::string msg, int level) {}
-	virtual void info(std::string msg) {}
-};
-
-class Logger : public LoggerBase {
 private:
 	std::string class_name;
 	std::string fullMessage;
@@ -28,8 +19,9 @@ private:
 
 public:
 	Logger() {}
-	Logger(std::string name);
 	Logger(std::string path, std::string name);
+	// delegation is fun
+	Logger(std::string name) : Logger(Config::get_str_setting("log_path"), name) {};
 	virtual ~Logger();
 
 	void _log(std::string msg, int level);

@@ -21,7 +21,7 @@
 
 Router::Router(int qsize, std::string port) {
 	this->queue_size = qsize;
-	this->logger = new Logger(Config::get_str_setting("log_path"), "Router");
+	this->logger = new Logger("Router");
 	this->port = port;
     // initialize the socket
 	this->listening_socket_fd = this->init_socket();

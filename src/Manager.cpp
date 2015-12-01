@@ -17,7 +17,7 @@
 pthread_mutex_t * mutex_pool; // separate locks for each thread
 
 Manager::Manager() {
-    this->logger = new Logger(Config::get_str_setting("log_path"), "Manager");
+    this->logger = new Logger("Manager");
     this->worker_count = Config::get_int_setting("worker_count");
     this->pool = (pthread_t*)       calloc(worker_count, sizeof(pthread_t));
     mutex_pool = (pthread_mutex_t*) calloc(worker_count, sizeof(pthread_mutex_t));

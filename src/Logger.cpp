@@ -20,20 +20,7 @@ std::time_t epochTimestamp;
 int logFileDescriptor;
 std::mutex mut;
 
-//Po co jest LoggerBase?
-
-LoggerBase::LoggerBase(std::string path) {
-	log_path = path;
-}
-
-LoggerBase::~LoggerBase() {
-}
-
-Logger::Logger(std::string name) {
-	this->class_name = name;
-}
-
-Logger::Logger(std::string path, std::string name) : LoggerBase(path) {
+Logger::Logger(std::string path, std::string name) {
     std::map<string, int > map;
     map.insert(pair<string, int>("QUIET", 0));
     map.insert(pair<string, int>("WARNINGS", 1));
@@ -43,17 +30,14 @@ Logger::Logger(std::string path, std::string name) : LoggerBase(path) {
     const char* cLoggerStatus;
     this->current_log_level = map.at(Config::get_str_setting("current_log_level"));
     this->class_name = name;
-    logFileDescriptor = open(log_path.c_str(), O_WRONLY | O_APPEND);
+    log_path = path;
+    logFileDescriptor = open(log_path.c_str(), O_WRONLY | O_APPEND | O_CREAT );
 
     if(logFileDescriptor < 0){
-        loggerStatus = "[" + this->class_name + "]" + " Error opening logfile, disabling logging to file\nError: " + strerror(errno) + "\n";
+        loggerStatus = "[" + this->class_name + "]" + " Error opening logfile at "+log_path+", disabling logging to file\nError: " + strerror(errno) + "\n";
         cLoggerStatus = loggerStatus.c_str();
         write(2, cLoggerStatus, strlen(cLoggerStatus));
         isLoggingToFileEnabled = false;
-    } else {
-        loggerStatus = "[" + this->class_name + "]" + " Logfile is open, logging to file enabled\n";
-        cLoggerStatus = loggerStatus.c_str();
-        write(1, cLoggerStatus, strlen(cLoggerStatus));
     }
 }
 

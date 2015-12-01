@@ -20,7 +20,7 @@
  */
 
 Worker::Worker(int socket_fd) {
-    this->logger = new Logger(Config::get_str_setting("log_path"), "Worker");
+    this->logger = new Logger("Worker");
     this->socket_fd = socket_fd;
 }
 
