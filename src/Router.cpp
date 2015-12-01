@@ -11,6 +11,7 @@
 
 #include "Router.h"
 #include "Manager.h"
+#include "Config.h"
 
 /*
  * router - watches the designated port and for launches a new worker for every connection
@@ -20,7 +21,7 @@
 
 Router::Router(int qsize, std::string port) {
 	this->queue_size = qsize;
-	this->logger = Logger("Router");
+	this->logger = Logger(Config::get_str_setting("log_path"), "Router");
 	this->port = port;
     // initialize the socket
 	this->listening_socket_fd = this->init_socket();

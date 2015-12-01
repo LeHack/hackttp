@@ -16,7 +16,7 @@ int main() {
 	// Init basic classes
 	CmdLine cmdline;
 	Config config;
-    Logger logger(config.get_str_setting("log_path"), "Server");
+    Logger logger(Config::get_str_setting("log_path"), "Server");
     //"hello from server.cpp" message, to be removed
     logger.info(config.get_str_setting("config_test"));
 

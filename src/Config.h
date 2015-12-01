@@ -13,15 +13,14 @@ class Config {
         std::string configRelevantString;
         std::string configLine;
         std::string key;
-        std::string returnString;
         size_t position;
         void loadConfigFileToMap();
 
 public:
 		Config();
 		virtual ~Config();
-		int get_int_setting(std::string);
-		std::string get_str_setting(std::string);
+		static int get_int_setting(std::string);
+		static std::string get_str_setting(std::string);
 };
 
 using namespace std;

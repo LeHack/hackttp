@@ -8,6 +8,7 @@
 
 #include "Manager.h"
 #include "Worker.h"
+#include "Config.h"
 /*
  * manager - keeps track of workers, their current status, should handle zombies (number of workers comes from config)
  */
@@ -16,7 +17,7 @@
 pthread_mutex_t * mutex_pool; // separate locks for each thread
 
 Manager::Manager() {
-    this->logger = Logger("Manager");
+    this->logger = Logger(Config::get_str_setting("log_path"), "Manager");
     // TODO Move to config file and fetch directly from there
     this->worker_count = 10;
     this->pool = (pthread_t*)       calloc(worker_count, sizeof(pthread_t));

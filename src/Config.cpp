@@ -68,6 +68,8 @@ int Config::get_int_setting(std::string setting_name) {
 
 
 std::string Config::get_str_setting(std::string setting_name) {
+    std::string returnString;
+
     try{
         returnString = configMap.at(setting_name);
     } catch (out_of_range) {

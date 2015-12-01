@@ -11,6 +11,7 @@
 
 #include "Worker.h"
 #include "BasicHTTP.h"
+#include "Config.h"
 
 #define HTTP_REQUEST_LENGTH 8192
 
@@ -19,7 +20,7 @@
  */
 
 Worker::Worker(int socket_fd) {
-    this->logger = Logger("Worker");
+    this->logger = Logger(Config::get_str_setting("log_path"), "Worker");
     this->socket_fd = socket_fd;
 }
 
