@@ -1,12 +1,14 @@
 #ifndef SRC_LOGGER_H_
 #define SRC_LOGGER_H_
 #include <string>
-
-enum LogLevel { QUIET, WARNINGS, INFO, DEBUG };
+#define QUIET 0
+#define WARNINGS 1
+#define INFO 2
+#define DEBUG 3
+//enum LogLevel { QUIET, WARNINGS, INFO, DEBUG };
 
 class LoggerBase {
 protected:
-    // TODO: should be loaded from Config
 	int current_log_level = DEBUG;
 public:
 	LoggerBase() {}

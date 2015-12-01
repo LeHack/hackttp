@@ -3,6 +3,8 @@ log_path=./log
 queue_size=10
 config_test=Config Loaded, hello from server.cpp!
 start_full_server=true
+current_log_level=DEBUG
+worker_count=10
 ;
 
 Config manual:

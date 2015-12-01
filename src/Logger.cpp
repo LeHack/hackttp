@@ -1,9 +1,11 @@
 #include "Logger.h"
+#include "Config.h"
 #include <ctime>
 #include <fcntl.h>
 #include <unistd.h>
-#include <mutex>
 #include <string.h>
+#include <map>
+#include <mutex>
 
 /*
   * Simple logging utility with:
@@ -16,7 +18,7 @@
 std::string log_path;
 std::time_t epochTimestamp;
 int logFileDescriptor;
-std::mutex mutex;
+std::mutex mut;
 
 //Po co jest LoggerBase?
 
@@ -33,9 +35,14 @@ Logger::Logger(std::string name) {
 }
 
 Logger::Logger(std::string path, std::string name) : LoggerBase(path) {
+    std::map<string, int > map;
+    map.insert(pair<string, int>("QUIET", 0));
+    map.insert(pair<string, int>("WARNINGS", 1));
+    map.insert(pair<string, int>("INFO", 2));
+    map.insert(pair<string, int>("DEBUG", 3));
     std::string loggerStatus;
     const char* cLoggerStatus;
-
+    this->current_log_level = map.at(Config::get_str_setting("current_log_level"));
     this->class_name = name;
     logFileDescriptor = open(log_path.c_str(), O_WRONLY | O_APPEND);
 
@@ -57,7 +64,7 @@ Logger::~Logger() {
 
 void Logger::_log(std::string msg, int level) {
     if(this->current_log_level >= level) {
-        mutex.lock();
+        mut.lock();
         epochTimestamp = std::time(nullptr);
         fullDateTimestamp = std::asctime(std::localtime(&epochTimestamp));
         fullMessage = "[" +
@@ -74,6 +81,6 @@ void Logger::_log(std::string msg, int level) {
         if (isLoggingToFileEnabled) {
             write(logFileDescriptor, cFullMessage, strlen(cFullMessage));
         }
-        mutex.unlock();
+        mut.unlock();
     }
 }
