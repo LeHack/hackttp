@@ -20,13 +20,14 @@
  */
 
 Worker::Worker(int socket_fd) {
-    this->logger = Logger(Config::get_str_setting("log_path"), "Worker");
+    this->logger = new Logger(Config::get_str_setting("log_path"), "Worker");
     this->socket_fd = socket_fd;
 }
 
 Worker::~Worker() {
     // make sure to close the socket when we finish
 	close(this->socket_fd);
+    delete(this->logger);
 }
 
 std::string get_working_path();
@@ -34,7 +35,7 @@ std::string get_working_path();
 void Worker::handle_request() {
     char *request = (char *)calloc(HTTP_REQUEST_LENGTH, sizeof(char)); // standard limit of 8kb
 
-    this->logger.info("Handling request via socket: " + std::to_string(this->socket_fd));
+    this->logger->info("Handling request via socket: " + std::to_string(this->socket_fd));
 
     // first read the request
     if(recv(this->socket_fd, request, HTTP_REQUEST_LENGTH, 0) <= 0) {
@@ -65,7 +66,7 @@ void Worker::handle_request() {
             data = read_static_file(file_path);
         }
         catch (Worker::FileNotFound &e) {
-            this->logger.debug("Got exception while handling request: " + std::string(e.what()));
+            this->logger->debug("Got exception while handling request: " + std::string(e.what()));
             char * contents = read_static_file("/errors/404.html");
             data = (char *) malloc(strlen(contents) + file_path.length() - 3);
             sprintf(data, contents, file_path.substr(1).c_str());
@@ -89,7 +90,7 @@ void Worker::handle_request() {
 
     free(data);
 
-    this->logger.debug("Request handling done");
+    this->logger->debug("Request handling done");
 
     return;
 }
@@ -108,7 +109,7 @@ char * Worker::read_static_file(std::string path) {
         path = "/index.html";
 
     path = get_working_path() + path;
-    this->logger.debug("Reading file at: " + path);
+    this->logger->debug("Reading file at: " + path);
 
     int fd = open(path.c_str(), O_RDONLY);
     if (fd < 0) {

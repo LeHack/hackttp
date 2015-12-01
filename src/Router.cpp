@@ -21,7 +21,7 @@
 
 Router::Router(int qsize, std::string port) {
 	this->queue_size = qsize;
-	this->logger = Logger(Config::get_str_setting("log_path"), "Router");
+	this->logger = new Logger(Config::get_str_setting("log_path"), "Router");
 	this->port = port;
     // initialize the socket
 	this->listening_socket_fd = this->init_socket();
@@ -32,6 +32,7 @@ Router::~Router() {
     close(this->listening_socket_fd);
     // free the address
     freeaddrinfo(addr);
+    delete(this->logger);
 }
 
 void *get_in_addr(struct sockaddr *sa) {
@@ -47,7 +48,7 @@ void Router::watch() {
     struct sockaddr_storage client;
     int handling_socket;
 
-    this->logger.debug("watching port: " + this->port);
+    this->logger->debug("watching port: " + this->port);
 
     // create a manager object to handle different threads
     Manager manager;
@@ -67,7 +68,7 @@ void Router::watch() {
         struct sockaddr_in *sin = (struct sockaddr_in *)&client;
         char client_addr[INET6_ADDRSTRLEN];
         inet_ntop(AF_INET, &sin->sin_addr, client_addr, sizeof client_addr);
-        this->logger.info("Handling incoming connection from: " + std::string(client_addr));
+        this->logger->info("Handling incoming connection from: " + std::string(client_addr));
         // this will create a new worker to work with
         // TODO: add try/catch and handle too many workers exception
         manager.handle_request(handling_socket);
@@ -100,6 +101,6 @@ int Router::init_socket() {
         throw Router::Exception("Error binding socket: " + std::string(err ? err : "unknown error"));
     }
 
-    this->logger.debug("Got socket: " + std::to_string(listening_socket));
+    this->logger->debug("Got socket: " + std::to_string(listening_socket));
     return listening_socket;
 }

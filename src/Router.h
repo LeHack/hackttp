@@ -10,7 +10,7 @@ private:
 	int listening_socket_fd;
 	std::string port;
 	struct addrinfo *addr;
-	Logger logger;
+	Logger *logger;
 	int init_socket();
 
 public:

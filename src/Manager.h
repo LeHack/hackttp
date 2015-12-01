@@ -8,7 +8,7 @@ class Manager {
 private:
     int worker_count;
     pthread_t * pool; // keeps a pool of available workers
-    Logger logger;
+    Logger *logger;
     int get_free_worker_index();
 
 public:

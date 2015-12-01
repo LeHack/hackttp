@@ -17,7 +17,7 @@
 pthread_mutex_t * mutex_pool; // separate locks for each thread
 
 Manager::Manager() {
-    this->logger = Logger(Config::get_str_setting("log_path"), "Manager");
+    this->logger = new Logger(Config::get_str_setting("log_path"), "Manager");
     // TODO Move to config file and fetch directly from there
     this->worker_count = 10;
     this->pool = (pthread_t*)       calloc(worker_count, sizeof(pthread_t));
@@ -29,12 +29,13 @@ Manager::Manager() {
 
 Manager::~Manager() {
     free(this->pool);
+    delete(this->logger);
 }
 
 void *worker_runner(void *socket_fd);
 
 void Manager::handle_request(int socket_fd) {
-    this->logger.debug("Creating new thread for request at socket: " + std::to_string(socket_fd));
+    this->logger->debug("Creating new thread for request at socket: " + std::to_string(socket_fd));
 
     // get worker, if available
     int worker_ind = this->get_free_worker_index();
@@ -64,7 +65,7 @@ int Manager::get_free_worker_index() {
     if (free_worker < 0)
         throw Manager::Exception("Max workers exceeded, no free worker available");
 
-    this->logger.debug("Using worker: " + std::to_string(free_worker));
+    this->logger->debug("Using worker: " + std::to_string(free_worker));
     return free_worker;
 }
 
