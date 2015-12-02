@@ -1,17 +1,11 @@
-#include <sys/types.h>
 #include <sys/socket.h>
-#include <netdb.h>
 #include <unistd.h>
-#include <stdlib.h>
-#include <stdio.h>
 #include <cstring>
-#include <string.h>
-#include <fcntl.h>
-#include <linux/limits.h>
 
-#include "Worker.h"
 #include "BasicHTTP.h"
 #include "Config.h"
+#include "DataHandler.h"
+#include "Worker.h"
 
 #define HTTP_REQUEST_LENGTH 8192
 
@@ -29,8 +23,6 @@ Worker::~Worker() {
 	close(this->socket_fd);
     delete(this->logger);
 }
-
-std::string get_working_path();
 
 void Worker::handle_request() {
     char *request = (char *)calloc(HTTP_REQUEST_LENGTH, sizeof(char)); // standard limit of 8kb
@@ -59,32 +51,34 @@ void Worker::handle_request() {
             break;
     }
 
+    DataHandler dHandler;
     char * data;
+    int return_code = 200;
     if (space_count == 2) {
-        std::string file_path = req_str.substr(prev_pos, pos-prev_pos);
-        // add simple CGI handling
+        std::string path = req_str.substr(prev_pos, pos-prev_pos);
 
         try {
-            data = read_static_file(file_path);
+            data = dHandler.read_resource(path);
         }
-        catch (Worker::FileNotFound &e) {
+        catch (DataHandler::FileNotFound &e) {
             this->logger->debug("Got exception while handling request: " + std::string(e.what()));
-            char * contents = read_static_file("/errors/404.html");
-            data = (char *) malloc(strlen(contents) + file_path.length() - 3);
-            sprintf(data, contents, file_path.substr(1).c_str());
+            return_code = 404;
+            data = dHandler.get_error_file(return_code, path.substr(1));
         }
     }
     else {
         this->logger->debug("Could not parse request: " + req_str);
-        char * contents = read_static_file("/errors/400.html");
-        data = (char *) malloc(strlen(contents) + req_str.length() - 3);
-        sprintf(data, contents, request);
+        return_code = 400;
+        data = dHandler.get_error_file(return_code, req_str);
     }
 
     // apend standard response headers
     // TODO: move this to BasicHTTP handling
     char * headers = (char *) std::string(
-        "HTTP/1.x 200 OK\nServer: HackTTP\nConnection: close\nContent-Type: text/html; charset=UTF-8\n\n"
+        "HTTP/1.x "+std::to_string(return_code)+" OK\n"
+        "Server: HackTTP\n"
+        "Connection: close\n"
+        "Content-Type: text/html; charset=UTF-8\n\n"
     ).c_str();
 
     // now first send the headers
@@ -106,52 +100,4 @@ void Worker::send_msg(char * msgc) {
         throw Worker::Exception("Error while sending response to request: " + std::string(err ? err : "unknown error"));
     }
     return;
-}
-
-bool verify_path(std::string path) {
-    bool path_ok = false;
-
-    // verify that the path is not all slashes
-    // there's a very nice uncaught exception when we pass '//+' to open()
-    for(char c : path) {
-        if (c != '/') {
-            path_ok = true;
-            break;
-        }
-    }
-
-    return path_ok;
-}
-
-char * Worker::read_static_file(std::string path) {
-    // prepend cwd() to path
-
-    if (!verify_path(path))
-        path = "/index.html";
-
-    path = get_working_path() + path;
-    this->logger->debug("Reading file at: " + path);
-
-    int fd = open(path.c_str(), O_RDONLY);
-    if (fd < 0) {
-        // TODO: replace with a proper HTTP CODE
-        char * err = std::strerror(errno);
-        throw Worker::FileNotFound("Error while reading file contents at " + path + ": " + std::string(err ? err : "unknown error"));
-    }
-
-    lseek(fd, 0, SEEK_END);
-    long fsize = lseek(fd, 0, SEEK_CUR);
-    lseek(fd, 0, SEEK_SET);
-
-    char * data = (char *) malloc(fsize + 1);
-    read(fd, data, fsize);
-    close(fd);
-    data[fsize] = '\0';
-
-    return data;
-}
-
-std::string get_working_path() {
-   char temp[PATH_MAX];
-   return ( getcwd(temp, PATH_MAX) ? std::string( temp ) : std::string("") );
 }
