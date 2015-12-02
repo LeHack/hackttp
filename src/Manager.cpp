@@ -74,8 +74,16 @@ void *worker_runner(void *arg) {
     int socket_fd  = params[1];
 
     // start handling the request
-    Worker worker(socket_fd);
-    worker.handle_request();
+    try {
+        Worker worker(socket_fd);
+        worker.handle_request();
+    }
+    catch (Worker::Exception &e) {
+        // create a temporary logger instance
+        Logger *logger = new Logger("Manager");
+        logger->debug( std::string(e.what()) );
+        delete(logger);
+    }
 
     // now we have to notify the manager, that we finished by unlocking our mutex
     pthread_mutex_unlock(&mutex_pool[worker_ind]);

@@ -38,7 +38,8 @@ void Worker::handle_request() {
     this->logger->info("Handling request via socket: " + std::to_string(this->socket_fd));
 
     // first read the request
-    if(recv(this->socket_fd, request, HTTP_REQUEST_LENGTH, 0) <= 0) {
+    ssize_t request_size = recv(this->socket_fd, request, HTTP_REQUEST_LENGTH, 0);
+    if(request_size < 0) {
         // TODO replace with proper HTTP response
         char * err = std::strerror(errno);
         throw Worker::Exception("Error while reading request: " + std::string(err ? err : "unknown error"));
@@ -46,6 +47,7 @@ void Worker::handle_request() {
 
     // get the static file contents
     std::string req_str = std::string(request);
+
     int space_count = 0;
     size_t pos = 0, prev_pos = 0;
     while (space_count < 2) {
@@ -73,7 +75,10 @@ void Worker::handle_request() {
         }
     }
     else {
-        data = (char*) std::string("<h1>Error, could not parse request</h1><pre>" + req_str + "</pre>").c_str();
+        this->logger->debug("Could not parse request: " + req_str);
+        char * contents = read_static_file("/errors/400.html");
+        data = (char *) malloc(strlen(contents) + req_str.length() - 3);
+        sprintf(data, contents, request);
     }
 
     // apend standard response headers
@@ -103,9 +108,25 @@ void Worker::send_msg(char * msgc) {
     return;
 }
 
+bool verify_path(std::string path) {
+    bool path_ok = false;
+
+    // verify that the path is not all slashes
+    // there's a very nice uncaught exception when we pass '//+' to open()
+    for(char c : path) {
+        if (c != '/') {
+            path_ok = true;
+            break;
+        }
+    }
+
+    return path_ok;
+}
+
 char * Worker::read_static_file(std::string path) {
     // prepend cwd() to path
-    if (path == "/")
+
+    if (!verify_path(path))
         path = "/index.html";
 
     path = get_working_path() + path;

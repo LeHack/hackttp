@@ -31,9 +31,7 @@ int main() {
             router.watch();
         }
         catch (BaseException &e) {
-            logger.warn(
-                std::string(e.what()) + ", terminating server..."
-            );
+            logger.warn( std::string(e.what()) + ", terminating server..." );
         }
     } else {
         logger.info("Running in test mode");
