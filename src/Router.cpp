@@ -76,19 +76,18 @@ int Router::init_socket() {
     // TODO error handling (what if there's no memory available)
     memset(&listening_socket_description, 0, sizeof listening_socket_description);
 
+    // TODO add option to listen on a particular address
     listening_socket_description.ai_family = AF_UNSPEC;  // use IPv4 or IPv6, whichever
     listening_socket_description.ai_socktype = SOCK_STREAM;
     listening_socket_description.ai_flags = AI_PASSIVE;     // fill in my IP for me
     getaddrinfo(NULL, this->port.c_str(), &listening_socket_description, &this->addr);
 
-    // TODO error handling (what if we cannot open the socket)
     int listening_socket = socket(this->addr->ai_family, this->addr->ai_socktype, this->addr->ai_protocol);
     if (listening_socket < 0) {
         char * err = std::strerror(errno);
         throw Router::Exception("Error opening socket: " + std::string(err ? err : "unknown error"));
     }
 
-    // TODO error handling (what if we can't bind)
     int check = bind(listening_socket, this->addr->ai_addr, this->addr->ai_addrlen);
     if (check < 0) {
         char * err = std::strerror(errno);

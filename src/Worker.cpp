@@ -40,6 +40,7 @@ void Worker::handle_request() {
     // get the static file contents
     std::string req_str = std::string(request);
 
+    // TODO replace with some actual request parser (to be part of BasicHTTP)
     int space_count = 0;
     size_t pos = 0, prev_pos = 0;
     while (space_count < 2) {
