@@ -1,4 +1,3 @@
-#include <iostream>
 #include "CmdLine.h"
 #include "Config.h"
 #include "Logger.h"

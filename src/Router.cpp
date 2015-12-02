@@ -1,17 +1,11 @@
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <errno.h>
 #include <netdb.h>
 #include <unistd.h>
-#include <thread>
-#include <chrono>
 #include <cstring>
-#include <netinet/in.h>
 #include <arpa/inet.h>
 
+#include "Config.h"
 #include "Router.h"
 #include "Manager.h"
-#include "Config.h"
 
 /*
  * router - watches the designated port and for launches a new worker for every connection

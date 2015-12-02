@@ -1,14 +1,10 @@
-#include <stdio.h>
-#include <pthread.h>
-#include <stdlib.h>
-#include <stdio.h>
 #include <cstring>
-#include <pthread.h>
 #include <mutex>
+#include <pthread.h>
 
+#include "Config.h"
 #include "Manager.h"
 #include "Worker.h"
-#include "Config.h"
 /*
  * manager - keeps track of workers, their current status, should handle zombies (number of workers comes from config)
  */
