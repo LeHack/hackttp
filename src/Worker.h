@@ -8,7 +8,7 @@ class Worker {
 private:
     int socket_fd;
     Logger *logger;
-    void send_msg(char * msg);
+    void send_msg(char * msg, long size);
 
 public:
 	Worker(int socket_fd);

@@ -53,7 +53,7 @@ void Worker::handle_request() {
     }
 
     DataHandler dHandler;
-    char * data;
+    resource data;
     int return_code = 200;
     if (space_count == 2) {
         std::string path = req_str.substr(prev_pos, pos-prev_pos);
@@ -61,7 +61,12 @@ void Worker::handle_request() {
         try {
             data = dHandler.read_resource(path);
         }
-        catch (DataHandler::FileNotFound &e) {
+        catch (DataHandler::Unsupported &e) {
+            this->logger->debug("Unsupported file while handling request: " + std::string(e.what()));
+            return_code = 415;
+            data = dHandler.get_error_file(return_code, std::string(e.what()));
+        }
+        catch (DataHandler::Exception &e) {
             this->logger->debug("Got exception while handling request: " + std::string(e.what()));
             return_code = 404;
             data = dHandler.get_error_file(return_code, path.substr(1));
@@ -73,30 +78,38 @@ void Worker::handle_request() {
         data = dHandler.get_error_file(return_code, req_str);
     }
 
-    // apend standard response headers
     // TODO: move this to BasicHTTP handling
-    char * headers = (char *) std::string(
-        "HTTP/1.x "+std::to_string(return_code)+" OK\n"
-        "Server: HackTTP\n"
-        "Connection: close\n"
-        "Content-Type: text/html; charset=UTF-8\n\n"
-    ).c_str();
+    // apend standard response headers, but only if it's static content
+    if (data.type != "executable") {
+        std::string headers =
+            "HTTP/1.1 "+std::to_string(return_code)+" OK\n"
+            "Server: HackTTP\n"
+            "Connection: close\n"
+            "Content-Type: "+data.type+"\n";
+        ;
 
-    // now first send the headers
-    send_msg(headers);
+        if (data.type.find("image/") != std::string::npos) {
+            headers += "Accept-Ranges: bytes\n";
+            headers += "Content-Length: " + std::to_string(data.size) + "\n";
+        }
+
+        // now send the headers
+        headers += "\n";
+        send_msg((char *) headers.c_str(), headers.length());
+    }
 
     // then the data
-    send_msg(data);
+    send_msg(data.data, data.size);
 
-    free(data);
+    free(data.data);
 
     this->logger->debug("Request handling done");
 
     return;
 }
 
-void Worker::send_msg(char * msgc) {
-    if (send(this->socket_fd, msgc, strlen(msgc), 0) < 0) {
+void Worker::send_msg(char * msgc, long size) {
+    if (send(this->socket_fd, msgc, size, 0) < 0) {
         char * err = std::strerror(errno);
         throw Worker::Exception("Error while sending response to request: " + std::string(err ? err : "unknown error"));
     }
