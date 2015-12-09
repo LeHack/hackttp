@@ -6,5 +6,6 @@
 #define HACKTTP_GLOBALS_H_H
 
 extern bool isSigintRecieved;
+extern bool isSigusr1Recieved;
 
 #endif //HACKTTP_GLOBALS_H_H

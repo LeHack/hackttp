@@ -10,13 +10,14 @@ class Config {
 	private:
 		// to be replaced with some dynamic map struct
 		int queue_size = 10;
-        std::string configString;
-        std::string delimiter;
-        std::string configRelevantString;
-        std::string configLine;
-        std::string key;
-        size_t position;
-        void loadConfigFileToMap();
+        static std::string configString;
+        static std::string delimiter;
+        static std::string configRelevantString;
+        static std::string configLine;
+        static std::string key;
+        static size_t position;
+        static void loadConfigFileToMap();
+	    static void printMapContents();
 
 public:
 		Config();

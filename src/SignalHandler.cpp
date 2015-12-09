@@ -8,9 +8,17 @@
 #include "SignalHandler.h"
 #include "globals.h"
 
-void SignalHandler::signalHandler(int sig, siginfo_t *siginfo, void *context){
-    std::cout << "Signal recieved: SignalHandler" << std::endl;
+bool isSigintRecieved;
+bool isSigusr1Recieved;
+
+void SignalHandler::sigintHandler(int sig, siginfo_t *siginfo, void *context){
+    std::cout << "SignalHandler: Signal recieved - SIGINT" << std::endl;
     isSigintRecieved = true;
+}
+
+void SignalHandler::sigusr1Handler(int sig, siginfo_t *siginfo, void *context){
+    std::cout << "SignalHandler: Signal recieved - SIGUSR1, Config will be reloaded on next use." << std::endl;
+    isSigusr1Recieved = true;
 }
 
 SignalHandler::~SignalHandler() {
@@ -18,15 +26,29 @@ SignalHandler::~SignalHandler() {
 }
 
 SignalHandler::SignalHandler() {
+    isSigintRecieved = false;
+    isSigusr1Recieved = false;
 
-    struct sigaction act;
-    memset (&act, '\0', sizeof(act));
+    struct sigaction sigintStruct;
+    memset (&sigintStruct, '\0', sizeof(sigintStruct));
     /* Use the sa_sigaction field because the handles has two additional parameters */
-    act.sa_sigaction = &signalHandler;
+    sigintStruct.sa_sigaction = &sigintHandler;
     /* The SA_SIGINFO flag tells sigaction() to use the sa_sigaction field, not sa_handler. */
-    act.sa_flags = SA_SIGINFO;
+    sigintStruct.sa_flags = SA_SIGINFO;
 
-    if (sigaction(SIGINT, &act, NULL) < 0) {
+    if (sigaction(SIGINT, &sigintStruct, NULL) < 0) {
         std::cout <<"Signal error" <<std::endl;
     }
+
+    struct sigaction sigusr1Struct;
+    memset (&sigusr1Struct, '\0', sizeof(sigusr1Struct));
+    /* Use the sa_sigaction field because the handles has two additional parameters */
+    sigusr1Struct.sa_sigaction = &sigusr1Handler;
+    /* The SA_SIGINFO flag tells sigaction() to use the sa_sigaction field, not sa_handler. */
+    sigusr1Struct.sa_flags = SA_SIGINFO | SA_RESTART;
+
+    if (sigaction(SIGUSR1, &sigusr1Struct, NULL) < 0) {
+        std::cout <<"Signal error" <<std::endl;
+    }
+
 }

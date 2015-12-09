@@ -14,10 +14,8 @@
  *	- bind the router tho the receiving port and give it control
  *	- when router finishes, log and shutdown
  */
-bool isSigintRecieved;
 
 int main() {
-    isSigintRecieved = false;
 	// Init basic classes
     SignalHandler signalHandler;
 	CmdLine cmdline;

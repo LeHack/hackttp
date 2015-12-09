@@ -11,7 +11,8 @@ class SignalHandler{
 public:
     virtual ~SignalHandler();
     SignalHandler();
-    static void signalHandler(int, siginfo_t*, void*);
+    static void sigintHandler(int, siginfo_t *, void *);
+    static void sigusr1Handler(int, siginfo_t *, void *);
 };
 
 #endif //HACKTTP_SIGNALHANDLER_H
