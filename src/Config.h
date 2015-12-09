@@ -3,6 +3,8 @@
 #include <iostream>
 #include <exception>
 #include <vector>
+#include <signal.h>
+
 
 class Config {
 	private:

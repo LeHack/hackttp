@@ -20,6 +20,7 @@ Worker::Worker(int socket_fd) {
 
 Worker::~Worker() {
     // make sure to close the socket when we finish
+    this->logger->info("Destructor called");
 	close(this->socket_fd);
     delete(this->logger);
 }
@@ -32,6 +33,11 @@ void Worker::handle_request() {
     // first read the request
     ssize_t request_size = recv(this->socket_fd, request, HTTP_REQUEST_LENGTH, 0);
     if(request_size < 0) {
+        // TODO not sure if necessary
+        if(errno == EINTR){
+            this->logger->info("Recv() interrupted by signal");
+            return;
+        }
         // TODO replace with proper HTTP response
         char * err = std::strerror(errno);
         throw Worker::Exception("Error while reading request: " + std::string(err ? err : "unknown error"));

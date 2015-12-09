@@ -5,7 +5,9 @@
 #include <string.h>
 #include <vector>
 #include <map>
+#include <signal.h>
 #include "Config.h"
+#include "globals.h"
 #define CONFIG_SIZE 500
 /*
  * config - loads config file on demand, keeps the config in shared RO memory for fast access
@@ -16,6 +18,8 @@ std::map<string, string> configMap;
 Config::Config() {
     loadConfigFileToMap();
 }
+
+
 void Config::loadConfigFileToMap(){
     int configFileDescriptor = open("./config", O_RDONLY);
     char configFileContents[CONFIG_SIZE];

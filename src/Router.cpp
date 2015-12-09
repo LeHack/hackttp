@@ -6,6 +6,7 @@
 #include "Config.h"
 #include "Router.h"
 #include "Manager.h"
+#include "globals.h"
 
 /*
  * router - watches the designated port and for launches a new worker for every connection
@@ -22,6 +23,7 @@ Router::Router(int qsize, std::string port) {
 }
 
 Router::~Router() {
+    this->logger->info("Destructor called");
     // close our socket
     close(this->listening_socket_fd);
     // free the address
@@ -48,15 +50,21 @@ void Router::watch() {
     Manager manager;
 
     // we work until we're told to stop working
-    while (true) {
+    while (!isSigintRecieved) {
         // listen for new connections
         listen(this->listening_socket_fd, this->queue_size);
 
         addr_size = sizeof client;
         handling_socket = accept(this->listening_socket_fd, (struct sockaddr *) &client, &addr_size);
+        cout << std::strerror(errno) << endl;
         if (handling_socket < 0) {
-            char * err = std::strerror(errno);
-            throw Router::Exception("Error when accepting connection: " + std::string(err ? err : "unknown error"));
+            if(errno == EINTR){
+                this->logger->info("Accept() interrupted by signal");
+                break;
+            } else {
+                char *err = std::strerror(errno);
+                throw Router::Exception("Error when accepting connection: " + std::string(err ? err : "unknown error"));
+            }
         }
 
         struct sockaddr_in *sin = (struct sockaddr_in *)&client;
