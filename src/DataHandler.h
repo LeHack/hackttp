@@ -4,26 +4,44 @@
 #include "Exceptions.h"
 #include "Logger.h"
 
-struct resource {
-    std::string type;
-    char * data;
-    long size;
-};
-
 class DataHandler {
+public:
+    struct resource {
+        std::string type;
+        char * data;
+        long size;
+    };
+
 private:
     Logger *logger;
     std::string get_working_path();
     bool verify_path(std::string path);
-    resource run_command(std::string args[]);
-    resource get_file(std::string path);
-
 public:
-	DataHandler();
+    DataHandler();
 	virtual ~DataHandler();
 	resource read_resource(std::string path);
 	resource get_error_file(int error_code, std::string param);
 
+	class Static {
+        private:
+            Logger *logger;
+        public:
+            Static();
+            ~Static();
+            resource get_file(std::string path);
+            resource get_error_file(int error_code, std::string param);
+	};
+
+    class Exec {
+        private:
+            Logger *logger;
+        public:
+            Exec();
+            ~Exec();
+            resource run_command(std::string args[]);
+    };
+
+	// Exceptions
     class Exception: public BaseException {
         public:
             Exception(std::string msg = "Unknown data handler exception") {
