@@ -73,6 +73,7 @@ $cookie
         <p class="content">
             <img src="/t/images/hello.png" alt="hello"></img></br>
             <a href="/t/form.html">Back to the form</a>
+            <a href="/t/cgi/form.pl">Show with no input params</a>
         </p>
         <p class="footer">$footer</p>
     </body>
