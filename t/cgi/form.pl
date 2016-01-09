@@ -34,7 +34,7 @@ sub main {
 
     # prepare the cookie
     my $cookie = '';
-    if ($cgi->param('reset')) {
+    if ($name and $cgi->param('reset')) {
         $cookie = drop_cookie();
         $output = "Goodbye $name :)";
     }
