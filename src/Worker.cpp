@@ -41,6 +41,7 @@ void Worker::handle_request() {
         // TODO not sure if necessary
         if(errno == EINTR){
             this->logger->info("Recv() interrupted by signal");
+            free(request);
             return;
         }
         return_code = HTTP_BAD_REQUEST;
@@ -48,6 +49,12 @@ void Worker::handle_request() {
     }
     else {
         std::string req_str = std::string(request);
+        if (req_str.length() == 0) {
+            this->logger->warn("Empty request received, ignoring");
+            free(request);
+            return;
+        }
+
         BasicHTTP::request req = httpHandler.parse_request(req_str);
 
         if (req.valid) {

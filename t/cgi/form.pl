@@ -32,13 +32,18 @@ sub main {
         $output = "Top of $tod to you $name! It is very nice to meet you :)";
     }
 
-    # first print the cookie
-    my $cookie;
-    if ($name) {
-        $cookie = bake_cookie($name);
+    # prepare the cookie
+    my $cookie = '';
+    if ($cgi->param('reset')) {
+        $cookie = drop_cookie();
+        $output = "Goodbye $name :)";
     }
+    else {
+        $cookie = ($name ? bake_cookie($name) : '');
+    }
+
     # then the rest
-    print_out($cookie, $output, $footer);
+    printf get_template(), $cookie, $output, $footer;
 
     return;
 }
@@ -50,18 +55,19 @@ sub fetch_from_cookie {
 
 sub bake_cookie {
     my ($name) = @_;
-    return "Set-Cookie: name=$name\n";
+    return "Set-Cookie: name=$name; HttpOnly";
 }
 
-sub print_out {
-    my ($cookie, $output, $footer) = @_;
+sub drop_cookie {
+    my ($name) = @_;
+    return bake_cookie("deleted") . "; MaxAge=0; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+}
 
-    $cookie ||= '';
-
-    print << "EOF";
+sub get_template {
+    my $template = << "EOF";
 HTTP/1.x 200 OK
 Content-Type: text/html; charset=UTF-8;
-$cookie
+%s
 
 <html>
     <head>
@@ -69,18 +75,19 @@ $cookie
         <link rel="stylesheet" type="text/css" href="/t/css/form.css">
     </head>
     <body>
-        <h2>$output</h2>
+        <h2>%s</h2>
         <p class="content">
             <img src="/t/images/hello.png" alt="hello"></img></br>
-            <a href="/t/form.html">Back to the form</a>
-            <a href="/t/cgi/form.pl">Show with no input params</a>
+            <a href="/t/form.html">Back to the form</a><br/>
+            <a href="/t/cgi/form.pl">Show with no input params</a><br/>
+            <a href="/t/cgi/form.pl?reset=1">Drop cookie</a>
         </p>
-        <p class="footer">$footer</p>
+        <p class="footer">%s</p>
     </body>
 </html>
 EOF
 
-    return;
+    return $template;
 }
 
 main();
