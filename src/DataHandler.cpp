@@ -2,6 +2,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <linux/limits.h>
+#include <cctype>
+#include <clocale>
 
 #include "DataHandler.h"
 
@@ -41,6 +43,12 @@ bool is(char * mime, std::string type) {
 }
 
 DataHandler::resource DataHandler::read_resource(std::string path) {
+    return DataHandler::read_resource(path, "");
+}
+DataHandler::resource DataHandler::read_resource(std::string path, std::string cookies) {
+    return DataHandler::read_resource(path, cookies, NULL);
+}
+DataHandler::resource DataHandler::read_resource(std::string path, std::string cookies, DataHandler::resource * data) {
     // prepend cwd() to path
 
     if (!verify_path(path))
@@ -55,19 +63,23 @@ DataHandler::resource DataHandler::read_resource(std::string path) {
     std::string args[2] = { "/usr/bin/file", path };
     DataHandler::resource file_mime = runner.run_command(args);
     char * mime = file_mime.data;
+    std::string ext = path.substr(path.length()-3);
+    for(char c : ext)
+        c = std::toupper(c);
 
     DataHandler::resource output;
     // now check for known mime types
     if (is(mime, "executable")) {
-        // run the script
+        // run the script, pass the data
         std::string args[2] = { path, "" }; // TODO: Fix me too!
-        DataHandler::resource script_output = runner.run_command(args);
+        DataHandler::resource script_output = runner.run_command(args, data, cookies);
         output.data = script_output.data;
         output.size = script_output.size;
         output.type = "executable";
     }
     // TODO: Move this definition to some more reasonable place
     else if (is(mime, "HTML"))                       { output.type = "text/html; charset=UTF-8";  }
+    else if (is(mime, "ASCII") && ext == "CSS")      { output.type = "text/css";                  }
     else if (is(mime, "ERROR") || is(mime, "ASCII")) { output.type = "text/plain; charset=UTF-8"; }
     else if (is(mime, "JPEG"))                       { output.type = "image/jpeg";                }
     else if (is(mime, "PNG"))                        { output.type = "image/png";                 }
@@ -102,7 +114,7 @@ DataHandler::resource DataHandler::get_error_file(int error_code, std::string pa
     DataHandler::resource output = DataHandler::read_resource("/errors/"+ std::to_string(error_code) +".html");
     // now prepare a place to write the filled template
     long new_size = output.size + param.length() - 3;
-    char * data = (char *) malloc(new_size * sizeof(char));
+    char * data = (char *) malloc((new_size+1) * sizeof(char));
     // and fill it
     sprintf(data, output.data, param.c_str());
 

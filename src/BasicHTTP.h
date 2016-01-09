@@ -15,20 +15,26 @@
 #define HTTP_NOT_IMPLEMENTED    501
 
 class BasicHTTP {
-private:
-    Logger *logger;
 public:
     struct request {
         std::string method;
         std::string uri;
+        std::string cookies;
+        DataHandler::resource data;
         bool valid;
     };
-
     struct response {
         std::string headers;
         bool has_headers;
     };
 
+private:
+    Logger *logger;
+    std::string fetch_cookies(std::string req_str);
+    void handle_get_method(request * req);
+    void handle_post_method(BasicHTTP::request * req, std::string req_str);
+
+public:
     BasicHTTP();
 	virtual ~BasicHTTP();
 	request  parse_request(std::string req_str);

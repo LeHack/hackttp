@@ -39,6 +39,7 @@ Debug
 
 .idea
 .settings
+.includepath
 
 #CLion files
 CMakeLists.txt

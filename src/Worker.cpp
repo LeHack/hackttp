@@ -30,6 +30,11 @@ void Worker::handle_request() {
 
     this->logger->info("Handling request via socket: " + std::to_string(this->socket_fd));
 
+    int return_code = HTTP_OK;
+    BasicHTTP httpHandler;
+    DataHandler dHandler;
+    DataHandler::resource data;
+
     // first read the request
     ssize_t request_size = recv(this->socket_fd, request, HTTP_REQUEST_LENGTH, 0);
     if(request_size < 0) {
@@ -38,39 +43,43 @@ void Worker::handle_request() {
             this->logger->info("Recv() interrupted by signal");
             return;
         }
-        // TODO replace with proper HTTP response
-        char * err = std::strerror(errno);
-        throw Worker::Exception("Error while reading request: " + std::string(err ? err : "unknown error"));
-    }
-
-    std::string req_str = std::string(request);
-
-    BasicHTTP httpHandler;
-    BasicHTTP::request req = httpHandler.parse_request(req_str);
-
-    DataHandler dHandler;
-    DataHandler::resource data;
-
-    int return_code = HTTP_OK;
-    if (req.valid) {
-        try {
-            data = dHandler.read_resource(req.uri);
-        }
-        catch (DataHandler::Unsupported &e) {
-            this->logger->debug("Unsupported file while handling request: " + std::string(e.what()));
-            return_code = HTTP_UNSUP_MEDIA_TYPE;
-            data = dHandler.get_error_file(return_code, std::string(e.what()));
-        }
-        catch (DataHandler::Exception &e) {
-            this->logger->debug("Got exception while handling request: " + std::string(e.what()));
-            return_code = HTTP_NOT_FOUND;
-            data = dHandler.get_error_file(return_code, req.uri.substr(1));
-        }
+        return_code = HTTP_BAD_REQUEST;
+        data = dHandler.get_error_file(return_code, "Empty request received");
     }
     else {
-        this->logger->debug("Could not parse request: " + req_str);
-        return_code = HTTP_BAD_REQUEST;
-        data = dHandler.get_error_file(return_code, req_str);
+        std::string req_str = std::string(request);
+        BasicHTTP::request req = httpHandler.parse_request(req_str);
+
+        if (req.valid) {
+            try {
+                data = dHandler.read_resource(req.uri, req.cookies, &req.data);
+            }
+            catch (DataHandler::Unsupported &e) {
+                this->logger->debug("Unsupported file while handling request: " + std::string(e.what()));
+                return_code = HTTP_UNSUP_MEDIA_TYPE;
+                data = dHandler.get_error_file(return_code, std::string(e.what()));
+            }
+            catch (DataHandler::Exec::PermissionDenied &e) {
+                this->logger->debug("Permission denied while handling request: " + std::string(e.what()));
+                return_code = HTTP_FORBIDDEN;
+                data = dHandler.get_error_file(return_code, std::string(e.what()));
+            }
+            catch (DataHandler::Exception &e) {
+                this->logger->debug("Got exception while handling request: " + std::string(e.what()));
+                return_code = HTTP_NOT_FOUND;
+                data = dHandler.get_error_file(return_code, req.uri.substr(1));
+            }
+        }
+        else {
+            this->logger->debug("Could not parse request: " + req_str);
+            return_code = HTTP_BAD_REQUEST;
+            data = dHandler.get_error_file(return_code, req_str);
+        }
+
+        // finally free the allocated memory
+        if (req.data.data) {
+            free(req.data.data);
+        }
     }
 
     BasicHTTP::response resp = httpHandler.render_headers(return_code, data);
@@ -82,6 +91,7 @@ void Worker::handle_request() {
     send_msg(data.data, data.size);
 
     free(data.data);
+    free(request);
 
     this->logger->debug("Request handling done");
 

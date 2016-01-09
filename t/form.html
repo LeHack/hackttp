@@ -1,0 +1,18 @@
+<html>
+<head>
+    <title>HackTTP - Example form</title>
+</head>
+<body>
+    <h1>HackTTP - Example form</h1>
+    <p>Please enter your name, to get a friendly greeting (using GET):</p>
+    <form method="GET" action="/t/cgi/form.pl">
+        Name: <input type="text" name="name"></input>
+        <input type="submit" value="Greet me!"></input>
+    </form>
+    <p>The same example using the POST method:</p>
+    <form method="POST" action="/t/cgi/form.pl">
+        Name: <input type="text" name="name"></input>
+        <input type="submit" value="Greet me!"></input>
+    </form>
+</body>
+</html>

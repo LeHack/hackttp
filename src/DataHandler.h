@@ -20,7 +20,17 @@ public:
     DataHandler();
 	virtual ~DataHandler();
 	resource read_resource(std::string path);
+	resource read_resource(std::string path, std::string cookies);
+	resource read_resource(std::string path, std::string cookies, DataHandler::resource * data);
 	resource get_error_file(int error_code, std::string param);
+
+    // Exception base
+    class Exception: public BaseException {
+        public:
+            Exception(std::string msg = "Unknown data handler exception") {
+                this->reason = msg;
+            }
+    };
 
 	class Static {
         private:
@@ -39,15 +49,17 @@ public:
             Exec();
             ~Exec();
             resource run_command(std::string args[]);
+            resource run_command(std::string args[], DataHandler::resource * data);
+            resource run_command(std::string args[], DataHandler::resource * data, std::string cookies);
+
+        class PermissionDenied: public Exception {
+            public:
+                PermissionDenied(std::string msg = "Permission denied while trying to execute command") {
+                    this->reason = msg;
+                }
+        };
     };
 
-	// Exceptions
-    class Exception: public BaseException {
-        public:
-            Exception(std::string msg = "Unknown data handler exception") {
-                this->reason = msg;
-            }
-    };
     class FileNotFound: public Exception {
         public:
             FileNotFound(std::string msg = "Could not find requested file") {

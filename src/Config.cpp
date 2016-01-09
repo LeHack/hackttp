@@ -17,7 +17,7 @@ std::map<string, string> configMap;
 
 Config::Config() {
     loadConfigFileToMap();
-    printMapContents();
+//    printMapContents();
 }
 
 
@@ -75,7 +75,7 @@ Config::~Config() {
 int Config::get_int_setting(std::string setting_name) {
     if(isSigusr1Recieved){
         Config::loadConfigFileToMap();
-        Config::printMapContents();
+//        Config::printMapContents();
         isSigusr1Recieved = false;
     }
 	int returnInt = -1;

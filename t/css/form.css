@@ -1,0 +1,25 @@
+body {
+	font-family: sans-serif;
+	font-size: 1.2em;
+}
+
+p.content {
+	text-align: center;
+}
+
+a, a:VISITED {
+	color: rgb(0,0,0);
+	font-size: 0.7em;
+	text-decoration: none;
+}
+a:HOVER {
+	color: rgb(70,70,70);
+	text-decoration: underline;
+}
+
+.footer {
+	text-align: right;
+    font-style: italic;
+    font-size: 0.57em;
+    color: rgb(120,120,120); 
+}
