@@ -26,16 +26,22 @@ Manager::~Manager() {
 
 void *worker_runner(void *socket_fd);
 
-void Manager::handle_request(int socket_fd) {
+union dCont {
+    int ival;
+    const char * strval;
+};
+
+void Manager::handle_request(string client, int socket_fd) {
     this->logger->debug("Creating new thread for request at socket: " + std::to_string(socket_fd));
 
     // get worker, if available
     int worker_ind = this->get_free_worker_index();
 
     // handle the requst in a new thread
-    int * params = (int*) malloc(2*sizeof(int));
-    params[0] = worker_ind;
-    params[1] = socket_fd;
+    dCont * params = (dCont *) malloc(2*sizeof(int) + 16*sizeof(char));
+    params[0].ival   = worker_ind;
+    params[1].ival   = socket_fd;
+    params[2].strval = client.c_str();
     if (pthread_create(&this->pool[worker_ind], NULL, worker_runner, (void *)params) < 0) {
         char * err = std::strerror(errno);
         throw Manager::Exception("Error creating thread: " + std::string(err ? err : "unknown error"));
@@ -62,13 +68,15 @@ int Manager::get_free_worker_index() {
 }
 
 void *worker_runner(void *arg) {
-    int *params = (int *) arg;
-    int worker_ind = params[0];
-    int socket_fd  = params[1];
+    dCont *params = (dCont *) arg;
+    int worker_ind = params[0].ival;
+    int socket_fd  = params[1].ival;
+    string client  = string(params[2].strval);
+    free(params);
 
     // start handling the request
     try {
-        Worker worker(socket_fd);
+        Worker worker(client, socket_fd);
         worker.handle_request();
     }
     catch (Worker::Exception &e) {

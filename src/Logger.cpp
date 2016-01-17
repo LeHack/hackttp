@@ -16,7 +16,7 @@
 // global
 std::time_t epochTimestamp;
 
-Logger::Logger(std::string path, std::string name) {
+Logger::Logger(string path, string name) {
     isLoggingToFileEnabled = true;
     std::map<string, int > map;
     map.insert(pair<string, int>("QUIET", 0));
@@ -44,13 +44,20 @@ Logger::~Logger() {
     close(logFileDescriptor);
 }
 
-void Logger::_log(std::string msg, int level) {
+void Logger::set_postfix(string postfix) {
+    addit_postfix = postfix;
+}
+
+void Logger::_log(string msg, int level) {
     if(this->current_log_level >= level) {
         epochTimestamp = std::time(nullptr);
         fullDateTimestamp = std::asctime(std::localtime(&epochTimestamp));
         fullMessage = "[" + fullDateTimestamp.substr(0, fullDateTimestamp.size() - 1) + "] " +
-                      "[:" + this->class_name + "] " +
-                      msg + "\n";
+                      "[:" + this->class_name + "] ";
+        if (addit_postfix.length() > 0) {
+            fullMessage += "[" + addit_postfix + "] ";
+        }
+        fullMessage += msg + "\n";
         if(!isLoggingToFileEnabled){
             fullMessage = "WARNING: Logging to file disabled " + fullMessage;
         }

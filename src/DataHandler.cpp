@@ -11,8 +11,9 @@
  * 		this memory should be shared between all workers/static handlers
  */
 
-DataHandler::DataHandler() {
+DataHandler::DataHandler(string client) {
     this->logger = new Logger("DataHandler");
+    this->logger->set_postfix(client);
 }
 
 DataHandler::~DataHandler() {

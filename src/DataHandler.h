@@ -17,7 +17,7 @@ private:
     std::string get_working_path();
     bool verify_path(std::string path);
 public:
-    DataHandler();
+    DataHandler(string client);
 	virtual ~DataHandler();
 	resource read_resource(std::string path);
 	resource read_resource(std::string path, std::string cookies);

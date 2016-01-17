@@ -7,10 +7,11 @@ class Worker {
 private:
     int socket_fd;
     Logger *logger;
+    string client;
     void send_msg(char * msg, long size);
 
 public:
-	Worker(int socket_fd);
+	Worker(string client, int socket_fd);
 	virtual ~Worker();
 	void handle_request();
 

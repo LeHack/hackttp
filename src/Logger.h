@@ -12,19 +12,21 @@ protected:
     int current_log_level = DEBUG;
 
 private:
-	std::string class_name;
-	std::string fullMessage;
-	std::string fullDateTimestamp;
-	std::string log_path;
+	string class_name;
+	string addit_postfix;
+	string fullMessage;
+	string fullDateTimestamp;
+	string log_path;
 	int logFileDescriptor;
     bool isLoggingToFileEnabled;
 
 public:
 	Logger() {}
-	Logger(std::string path, std::string name);
+	Logger(string path, string name);
 	// delegation is fun
-	Logger(std::string name) : Logger(Config::get_str_setting("log_path"), name) {};
+	Logger(string name) : Logger(Config::get_str_setting("log_path"), name) {};
 	virtual ~Logger();
+	void set_postfix(string postfix);
 
 	void _log(std::string msg, int level);
 	void warn(std::string msg)  { this->_log(msg, WARNINGS); }

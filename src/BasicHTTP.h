@@ -34,7 +34,7 @@ private:
     void handle_post_method(BasicHTTP::request * req, std::string req_str);
 
 public:
-    BasicHTTP();
+    BasicHTTP(string client);
 	virtual ~BasicHTTP();
 	request  parse_request(std::string req_str);
 	response render_headers(int code, DataHandler::resource rsrc);

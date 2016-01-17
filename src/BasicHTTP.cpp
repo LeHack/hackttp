@@ -4,8 +4,9 @@
  * BasicHTTP - implements a simple way to create serializable HTTP reponses that can be returned by worker
  */
 
-BasicHTTP::BasicHTTP() {
+BasicHTTP::BasicHTTP(string client) {
     this->logger = new Logger("BasicHTTP");
+    this->logger->set_postfix(client);
 }
 
 BasicHTTP::~BasicHTTP() {
@@ -51,7 +52,7 @@ BasicHTTP::request BasicHTTP::parse_request(std::string req_str) {
         http_ver = req_str.substr(prev_pos, pos-prev_pos);
         prev_pos = pos + 2;
     }
-    this->logger->info("Method: " + req.method + ", HTTP version string: " + http_ver + ", URI: " + req.uri);
+    this->logger->debug("Method: " + req.method + ", HTTP version string: " + http_ver + ", URI: " + req.uri);
 
     // now end with checking if it's actually valid
     req.valid = is_valid(req, http_ver);

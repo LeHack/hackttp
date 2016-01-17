@@ -21,8 +21,6 @@ int main() {
     Logger logger("Server");
     SignalHandler signalHandler;
 
-    //"hello from server.cpp" message, to be removed
-    logger.info(config.get_str_setting("config_test"));
     logger.info("Process id: " + std::to_string(getpid()));
     if(config.get_str_setting("start_full_server") == "true") {
         // starting the full server

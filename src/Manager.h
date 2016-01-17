@@ -13,7 +13,7 @@ private:
 public:
 	Manager();
 	virtual ~Manager();
-	void handle_request(int socket_fd);
+	void handle_request(string client, int socket_fd);
 
 	class Exception: public BaseException {
 	    public:

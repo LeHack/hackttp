@@ -68,10 +68,10 @@ void Router::watch() {
         struct sockaddr_in *sin = (struct sockaddr_in *)&client;
         char client_addr[INET6_ADDRSTRLEN];
         inet_ntop(AF_INET, &sin->sin_addr, client_addr, sizeof client_addr);
-        this->logger->info("Handling incoming connection from: " + std::string(client_addr));
+        this->logger->debug("Handling connection from: " + string(client_addr));
         // this will create a new worker to work with
         // TODO: add try/catch and handle too many workers exception
-        manager.handle_request(handling_socket);
+        manager.handle_request(string(client_addr), handling_socket);
     }
 }
 
