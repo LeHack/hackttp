@@ -3,6 +3,7 @@
 //
 
 #include "LoggingSingleton.h"
+#include <unistd.h>
 
 LoggingSingleton::LoggingSingleton() {}
 LoggingSingleton* LoggingSingleton::GetInstance() {

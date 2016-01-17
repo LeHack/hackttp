@@ -1,5 +1,7 @@
 #include "../DataHandler.h"
 
+#include <unistd.h>
+
 /*
  * handlers - currently two are planned: static file handler, cgi script handler
  * 1. cgi handler - fires given script and returns it's output

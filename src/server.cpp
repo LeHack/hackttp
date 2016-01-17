@@ -1,11 +1,10 @@
-#include <unistd.h>
-#include <string.h>
 #include "CmdLine.h"
 #include "Config.h"
 #include "Logger.h"
 #include "Router.h"
-#include "globals.h"
 #include "SignalHandler.h"
+
+#include <unistd.h>
 
 /*
  * "main" - should use other modules for everything, that is:

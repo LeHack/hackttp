@@ -5,9 +5,8 @@
 #ifndef HACKTTP_LOGGINGSINGLETON_H
 #define HACKTTP_LOGGINGSINGLETON_H
 
-#include <mutex>
-#include <unistd.h>
 #include "Logger.h"
+#include <mutex>
 
 class LoggingSingleton {
     private:

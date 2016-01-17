@@ -8,6 +8,7 @@ using namespace std;
 
 // commonly used libs
 #include <cerrno>
+#include <cstring>
 #include <cstdlib>
 
 #endif /* SRC_COMMON_H_ */

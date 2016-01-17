@@ -5,8 +5,8 @@
 #ifndef HACKTTP_SIGNALHANDLER_H
 #define HACKTTP_SIGNALHANDLER_H
 
-#include <signal.h>
 #include "Logger.h"
+#include <signal.h>
 
 class SignalHandler{
     private:

@@ -1,7 +1,6 @@
 #ifndef SRC_WORKER_H_
 #define SRC_WORKER_H_
 
-#include "Exceptions.h"
 #include "Logger.h"
 
 class Worker {

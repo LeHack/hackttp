@@ -1,7 +1,6 @@
 #ifndef SRC_MANAGER_H_
 #define SRC_MANAGER_H_
 
-#include "Exceptions.h"
 #include "Logger.h"
 
 class Manager {

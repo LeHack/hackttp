@@ -1,5 +1,13 @@
 #include "Config.h"
 #include "Logger.h"
+
+#include <fcntl.h>
+#include <map>
+#include <unistd.h>
+#include <vector>
+
+#define CONFIG_SIZE 500
+
 /*
  * config - loads config file on demand, keeps the config in shared RO memory for fast access
  */

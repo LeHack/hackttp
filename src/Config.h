@@ -4,16 +4,6 @@
 #include "Common.h"
 #include "globals.h"
 
-#include <fcntl.h>
-#include <fstream>
-#include <map>
-#include <signal.h>
-#include <sstream>
-#include <unistd.h>
-#include <vector>
-
-#define CONFIG_SIZE 500
-
 class Config {
 	private:
 		int queue_size;

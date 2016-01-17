@@ -1,11 +1,9 @@
-#include <sys/socket.h>
-#include <unistd.h>
-#include <cstring>
-
 #include "BasicHTTP.h"
-#include "Config.h"
 #include "DataHandler.h"
 #include "Worker.h"
+
+#include <sys/socket.h>
+#include <unistd.h>
 
 #define HTTP_REQUEST_LENGTH 8192
 

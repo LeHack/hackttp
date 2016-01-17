@@ -1,11 +1,7 @@
-#include <cstring>
-#include <fcntl.h>
-#include <unistd.h>
-#include <linux/limits.h>
-#include <cctype>
-#include <clocale>
-
 #include "DataHandler.h"
+
+#include <linux/limits.h>
+#include <unistd.h>
 
 /*
  * handlers - currently two are planned: static file handler, cgi script handler

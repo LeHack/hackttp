@@ -2,7 +2,6 @@
 #define SRC_LOGGER_H_
 #include "Config.h"
 
-#include <cstring>
 #define QUIET 0
 #define WARNINGS 1
 #define INFO 2
