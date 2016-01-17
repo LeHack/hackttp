@@ -1,11 +1,10 @@
 #include "Logger.h"
-#include "Config.h"
+#include "LoggingSingleton.h"
 #include <ctime>
 #include <fcntl.h>
-#include <unistd.h>
-#include <string.h>
 #include <map>
-#include <mutex>
+#include <string.h>
+#include <unistd.h>
 
 /*
   * Simple logging utility with:
@@ -15,12 +14,10 @@
  */
 
 // global
-std::string log_path;
 std::time_t epochTimestamp;
-int logFileDescriptor;
-std::mutex mut;
 
 Logger::Logger(std::string path, std::string name) {
+    isLoggingToFileEnabled = true;
     std::map<string, int > map;
     map.insert(pair<string, int>("QUIET", 0));
     map.insert(pair<string, int>("WARNINGS", 1));
@@ -31,12 +28,14 @@ Logger::Logger(std::string path, std::string name) {
     this->current_log_level = map.at(Config::get_str_setting("current_log_level"));
     this->class_name = name;
     log_path = path;
-    logFileDescriptor = open(log_path.c_str(), O_WRONLY | O_APPEND | O_CREAT );
+    logFileDescriptor = open(log_path.c_str(), O_WRONLY | O_APPEND | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP );
 
     if(logFileDescriptor < 0){
         loggerStatus = "[" + this->class_name + "]" + " Error opening logfile at "+log_path+", disabling logging to file\nError: " + strerror(errno) + "\n";
         cLoggerStatus = loggerStatus.c_str();
-        write(2, cLoggerStatus, strlen(cLoggerStatus));
+        if (write(STDERR_FILENO, cLoggerStatus, strlen(cLoggerStatus)) == -1) {
+            throw Logger::Exception("Cannot write to STDERR.");
+        }
         isLoggingToFileEnabled = false;
     }
 }
@@ -47,12 +46,10 @@ Logger::~Logger() {
 
 void Logger::_log(std::string msg, int level) {
     if(this->current_log_level >= level) {
-        mut.lock();
         epochTimestamp = std::time(nullptr);
         fullDateTimestamp = std::asctime(std::localtime(&epochTimestamp));
-        fullMessage = "[" +
-                      this->class_name + " " +
-                      fullDateTimestamp.substr(0, fullDateTimestamp.size() - 1) + "] " +
+        fullMessage = "[" + fullDateTimestamp.substr(0, fullDateTimestamp.size() - 1) + "] " +
+                      "[:" + this->class_name + "] " +
                       msg + "\n";
         if(!isLoggingToFileEnabled){
             fullMessage = "WARNING: Logging to file disabled " + fullMessage;
@@ -60,10 +57,17 @@ void Logger::_log(std::string msg, int level) {
 
         const char* cFullMessage = fullMessage.c_str();
 
-        write(1, cFullMessage, strlen(cFullMessage));
+        // fetch a LoggingSingleton instance when it's actually needed
+        LoggingSingleton *logWriter = LoggingSingleton::GetInstance();
+        logWriter->log(STDOUT_FILENO, cFullMessage);
         if (isLoggingToFileEnabled) {
-            write(logFileDescriptor, cFullMessage, strlen(cFullMessage));
+            try {
+                logWriter->log(logFileDescriptor, cFullMessage);
+            }
+            catch (LoggingSingleton::Exception &e) {
+                const char* errMessage = std::string("Error while writing to logfile: " + std::string(e.what()) + "\n").c_str();
+                logWriter->log(STDOUT_FILENO, errMessage);
+            }
         }
-        mut.unlock();
     }
 }

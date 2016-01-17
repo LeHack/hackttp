@@ -1,23 +1,17 @@
-#include <fstream>
-#include <sstream>
-#include <fcntl.h>
-#include <unistd.h>
-#include <string.h>
-#include <vector>
-#include <map>
-#include <signal.h>
 #include "Config.h"
-#include "globals.h"
-#define CONFIG_SIZE 500
+#include "Logger.h"
 /*
  * config - loads config file on demand, keeps the config in shared RO memory for fast access
  */
 
 std::map<string, string> configMap;
 
+Logger *logger;
 Config::Config() {
+    queue_size = 10;
     loadConfigFileToMap();
-//    printMapContents();
+    logger = new Logger("Config");
+    logger->debug("Ready");
 }
 
 
@@ -30,9 +24,16 @@ void Config::loadConfigFileToMap(){
     std::string key;
     size_t position;
 
-    int configFileDescriptor = open("./config", O_RDONLY);
+    int configFileDescriptor;
+    // TODO: Should take name of config file from constructor param (passed from CmdLine or some default)
+    if ((configFileDescriptor = open("./config", O_RDONLY, S_IRUSR)) == -1) {
+        throw ConfigException("Cannot open config file!");
+    }
+
     char configFileContents[CONFIG_SIZE];
-    read(configFileDescriptor, &configFileContents, CONFIG_SIZE);
+    if (read(configFileDescriptor, &configFileContents, CONFIG_SIZE) == -1) {
+        throw ConfigException("Cannot read config file!");
+    }
     close(configFileDescriptor);
 
     //Removes everything after ; in config file
@@ -62,21 +63,22 @@ void Config::loadConfigFileToMap(){
 }
 
 void Config::printMapContents(){
-    cout << "Currently loaded Config:" << endl;
+    logger->debug("Currently loaded Config:");
     for (const auto &p : configMap) {
-        std::cout << "[" << p.first << "] = " << p.second << '\n';
+        logger->debug("[" + p.first + "] = " + p.second);
     }
 }
 
 Config::~Config() {
+    delete(logger);
 }
 
 
 int Config::get_int_setting(std::string setting_name) {
-    if(isSigusr1Recieved){
+    if(isSigusr1Received){
         Config::loadConfigFileToMap();
-//        Config::printMapContents();
-        isSigusr1Recieved = false;
+        Config::printMapContents();
+        isSigusr1Received = false;
     }
 	int returnInt = -1;
     try {
@@ -91,10 +93,10 @@ int Config::get_int_setting(std::string setting_name) {
 
 
 std::string Config::get_str_setting(std::string setting_name) {
-    if(isSigusr1Recieved){
+    if(isSigusr1Received){
         Config::loadConfigFileToMap();
         Config::printMapContents();
-        isSigusr1Recieved = false;
+        isSigusr1Received = false;
     }
     std::string returnString;
 

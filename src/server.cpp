@@ -17,10 +17,11 @@
 
 int main() {
 	// Init basic classes
-    SignalHandler signalHandler;
 	CmdLine cmdline;
 	Config config;
     Logger logger("Server");
+    SignalHandler signalHandler;
+
     //"hello from server.cpp" message, to be removed
     logger.info(config.get_str_setting("config_test"));
     logger.info("Process id: " + std::to_string(getpid()));

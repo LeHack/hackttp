@@ -1,10 +1,5 @@
 #include "../DataHandler.h"
 
-#include <cstring>
-#include <fcntl.h>
-#include <unistd.h>
-#include <linux/limits.h>
-
 /*
  * handlers - currently two are planned: static file handler, cgi script handler
  * 1. cgi handler - fires given script and returns it's output
@@ -113,7 +108,14 @@ DataHandler::resource DataHandler::Exec::run_command(std::string args[], DataHan
 
         // Now first write what we have
         if (data && data->type == "POST") {
-            write(comms_in[PIPE_WRITE], data->data, data->size + 1);
+            if (write(comms_in[PIPE_WRITE], data->data, data->size + 1) == -1 ) {
+                char * err = std::strerror(errno);
+                throw DataHandler::Exception(
+                    "Error while writing to child process: " + std::string(args[0]) +", "
+                    + "error message: " + std::string(err ? err : "unknown error")
+                );
+
+            }
         }
         close(comms_in[PIPE_WRITE]);
 

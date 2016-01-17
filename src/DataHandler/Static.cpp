@@ -1,11 +1,5 @@
 #include "../DataHandler.h"
 
-#include <cstring>
-#include <fcntl.h>
-#include <unistd.h>
-#include <linux/limits.h>
-
-
 /*
  * handlers - currently two are planned: static file handler, cgi script handler
  * 1. cgi handler - fires given script and returns it's output
@@ -26,7 +20,6 @@ DataHandler::resource DataHandler::Static::get_file(std::string path) {
     this->logger->debug("Read file: " + path);
     int fd = open(path.c_str(), O_RDONLY);
     if (fd < 0) {
-        // TODO: replace with a proper HTTP CODE
         char * err = std::strerror(errno);
         throw DataHandler::FileNotFound("Error while reading file contents at " + path + ": " + std::string(err ? err : "unknown error"));
     }
@@ -36,7 +29,10 @@ DataHandler::resource DataHandler::Static::get_file(std::string path) {
 
     DataHandler::resource data;
     data.data = (char *) malloc(fsize+1);
-    read(fd, data.data, fsize);
+    if (read(fd, data.data, fsize) == -1) {
+        char * err = std::strerror(errno);
+        throw DataHandler::Exception("Error while reading file contents at " + path + ": " + std::string(err ? err : "unknown error"));
+    }
     close(fd);
 
     data.data[fsize] = '\0';

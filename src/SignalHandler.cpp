@@ -1,33 +1,16 @@
 //
 // Created by atticus on 12/9/15.
 //
-
-#include <string.h>
-#include <signal.h>
-#include <iostream>
 #include "SignalHandler.h"
-#include "globals.h"
 
-bool isSigintRecieved;
-bool isSigusr1Recieved;
+bool isSigintReceived;
+bool isSigusr1Received;
 
-void SignalHandler::sigintHandler(int sig, siginfo_t *siginfo, void *context){
-    std::cout << "SignalHandler: Signal recieved - SIGINT" << std::endl;
-    isSigintRecieved = true;
-}
-
-void SignalHandler::sigusr1Handler(int sig, siginfo_t *siginfo, void *context){
-    std::cout << "SignalHandler: Signal recieved - SIGUSR1, Config will be reloaded on next use." << std::endl;
-    isSigusr1Recieved = true;
-}
-
-SignalHandler::~SignalHandler() {
-
-}
-
+Logger *SignalHandler::logger;
 SignalHandler::SignalHandler() {
-    isSigintRecieved = false;
-    isSigusr1Recieved = false;
+    isSigintReceived = false;
+    isSigusr1Received = false;
+    logger = new Logger("SignalHandler");
 
     struct sigaction sigintStruct;
     memset (&sigintStruct, '\0', sizeof(sigintStruct));
@@ -37,7 +20,7 @@ SignalHandler::SignalHandler() {
     sigintStruct.sa_flags = SA_SIGINFO;
 
     if (sigaction(SIGINT, &sigintStruct, NULL) < 0) {
-        std::cout <<"Signal error" <<std::endl;
+        logger->warn("Signal error");
     }
 
     struct sigaction sigusr1Struct;
@@ -48,7 +31,21 @@ SignalHandler::SignalHandler() {
     sigusr1Struct.sa_flags = SA_SIGINFO | SA_RESTART;
 
     if (sigaction(SIGUSR1, &sigusr1Struct, NULL) < 0) {
-        std::cout <<"Signal error" <<std::endl;
+        logger->warn("Signal error");
     }
+    logger->debug("Ready");
+}
 
+SignalHandler::~SignalHandler() {
+    delete(logger);
+}
+
+void SignalHandler::sigintHandler(int sig, siginfo_t *siginfo, void *context){
+    logger->info("SignalHandler: Signal recieved - SIGINT, Shutting down");
+    isSigintReceived = true;
+}
+
+void SignalHandler::sigusr1Handler(int sig, siginfo_t *siginfo, void *context){
+    logger->info("SignalHandler: Signal recieved - SIGUSR1, Config will be reloaded on next use.");
+    isSigusr1Received = true;
 }

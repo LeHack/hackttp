@@ -1,15 +1,22 @@
 #ifndef SRC_CONFIG_H_
 #define SRC_CONFIG_H_
-#include <iostream>
-#include <exception>
-#include <vector>
-#include <signal.h>
 
+#include "Common.h"
+#include "globals.h"
+
+#include <fcntl.h>
+#include <fstream>
+#include <map>
+#include <signal.h>
+#include <sstream>
+#include <unistd.h>
+#include <vector>
+
+#define CONFIG_SIZE 500
 
 class Config {
 	private:
-		// to be replaced with some dynamic map struct
-		int queue_size = 10;
+		int queue_size;
         static std::string configString;
         static std::string delimiter;
         static std::string configRelevantString;
@@ -26,19 +33,11 @@ public:
 		static std::string get_str_setting(std::string);
 };
 
-using namespace std;
-// Possibly we could also add a stack trace here:
-// http://stackoverflow.com/questions/353180/how-do-i-find-the-name-of-the-calling-function
-class ConfigException: public exception {
-	std::string reason;
-
-	public:
-		ConfigException(std::string msg = "Unknown exception") {
-			reason = msg;
-		}
-		virtual const char* what() const throw() {
-			return reason.c_str();
-		}
+class ConfigException: public BaseException {
+    public:
+        ConfigException(std::string msg = "Unknown config exception") {
+            this->reason = msg;
+        }
 };
 
 #endif /* SRC_CONFIG_H_ */

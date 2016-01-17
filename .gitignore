@@ -46,3 +46,4 @@ CMakeLists.txt
 
 # Archive
 etap*.zip
+/Release/

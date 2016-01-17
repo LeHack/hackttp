@@ -1,7 +1,8 @@
 #ifndef SRC_LOGGER_H_
 #define SRC_LOGGER_H_
-#include <string>
 #include "Config.h"
+
+#include <cstring>
 #define QUIET 0
 #define WARNINGS 1
 #define INFO 2
@@ -15,7 +16,9 @@ private:
 	std::string class_name;
 	std::string fullMessage;
 	std::string fullDateTimestamp;
-    bool isLoggingToFileEnabled = true;
+	std::string log_path;
+	int logFileDescriptor;
+    bool isLoggingToFileEnabled;
 
 public:
 	Logger() {}
@@ -28,6 +31,13 @@ public:
 	void warn(std::string msg)  { this->_log(msg, WARNINGS); }
 	void info(std::string msg)  { this->_log(msg, INFO); 	 }
 	void debug(std::string msg) { this->_log(msg, DEBUG);	 }
+
+	class Exception: public BaseException {
+	    public:
+	        Exception(std::string msg = "Unknown logger exception") {
+	            this->reason = msg;
+	        }
+	};
 };
 
 #endif /* SRC_LOGGER_H_ */

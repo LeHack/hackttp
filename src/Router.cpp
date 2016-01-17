@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <cstring>
 #include <arpa/inet.h>
+#include <sys/socket.h>
 
 #include "Config.h"
 #include "Router.h"
@@ -23,11 +24,11 @@ Router::Router(int qsize, std::string port) {
 }
 
 Router::~Router() {
-    this->logger->info("Destructor called");
     // close our socket
     close(this->listening_socket_fd);
     // free the address
     freeaddrinfo(addr);
+    this->logger->info("Router instance correctly closed, dropping Logger");
     delete(this->logger);
 }
 
@@ -50,19 +51,19 @@ void Router::watch() {
     Manager manager;
 
     // we work until we're told to stop working
-    while (!isSigintRecieved) {
+    while (!isSigintReceived) {
         // listen for new connections
         listen(this->listening_socket_fd, this->queue_size);
 
         addr_size = sizeof client;
         handling_socket = accept(this->listening_socket_fd, (struct sockaddr *) &client, &addr_size);
-        cout << std::strerror(errno) << endl;
         if (handling_socket < 0) {
             if(errno == EINTR){
                 this->logger->info("Accept() interrupted by signal");
                 break;
             } else {
                 char *err = std::strerror(errno);
+                close(this->listening_socket_fd);
                 throw Router::Exception("Error when accepting connection: " + std::string(err ? err : "unknown error"));
             }
         }
@@ -94,6 +95,11 @@ int Router::init_socket() {
     if (listening_socket < 0) {
         char * err = std::strerror(errno);
         throw Router::Exception("Error opening socket: " + std::string(err ? err : "unknown error"));
+    }
+    int optval = 1;
+    if (setsockopt(listening_socket, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(int)) < 0) {
+        char * err = std::strerror(errno);
+        throw Router::Exception("Error setting socket options: " + std::string(err ? err : "unknown error"));
     }
 
     int check = bind(listening_socket, this->addr->ai_addr, this->addr->ai_addrlen);

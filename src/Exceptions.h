@@ -22,6 +22,7 @@ class BaseException: public std::exception {
         virtual const char* what() const throw() {
             return (name() + ": " + reason).c_str();
         }
+        virtual ~BaseException() throw() {};
 };
 
 #endif /* SRC_EXCEPTIONS_H_ */

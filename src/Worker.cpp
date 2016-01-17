@@ -20,7 +20,6 @@ Worker::Worker(int socket_fd) {
 
 Worker::~Worker() {
     // make sure to close the socket when we finish
-    this->logger->info("Destructor called");
 	close(this->socket_fd);
     delete(this->logger);
 }

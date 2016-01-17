@@ -5,7 +5,7 @@
 #ifndef HACKTTP_GLOBALS_H_H
 #define HACKTTP_GLOBALS_H_H
 
-extern bool isSigintRecieved;
-extern bool isSigusr1Recieved;
+extern bool isSigintReceived;
+extern bool isSigusr1Received;
 
 #endif //HACKTTP_GLOBALS_H_H

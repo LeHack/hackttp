@@ -6,13 +6,16 @@
 #define HACKTTP_SIGNALHANDLER_H
 
 #include <signal.h>
+#include "Logger.h"
 
 class SignalHandler{
-public:
-    virtual ~SignalHandler();
-    SignalHandler();
-    static void sigintHandler(int, siginfo_t *, void *);
-    static void sigusr1Handler(int, siginfo_t *, void *);
+    private:
+        static Logger *logger;
+    public:
+        SignalHandler();
+        virtual ~SignalHandler();
+        static void sigintHandler(int, siginfo_t *, void *);
+        static void sigusr1Handler(int, siginfo_t *, void *);
 };
 
 #endif //HACKTTP_SIGNALHANDLER_H

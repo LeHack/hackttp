@@ -2,7 +2,6 @@
 #define SRC_BASICHTTP_H_
 
 #include "DataHandler.h"
-#include "Exceptions.h"
 #include "Logger.h"
 
 // Currently returned HTTP CODES
