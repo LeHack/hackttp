@@ -94,10 +94,10 @@ void Worker::handle_request() {
     }
 
     if (req.valid) {
-        this->logger->info("[" + req.method + "] " + req.uri + " [" + to_string(return_code) + "]");
+        this->logger->info("\"" + req.method + " " + req.uri + " " + req.http_version + "\" " + to_string(return_code) + " " + to_string(data.size));
     }
     else {
-        this->logger->info("Could not parse request [" + to_string(return_code) + "]");
+        this->logger->info("Could not parse request, " + to_string(return_code));
     }
 
     BasicHTTP::response resp = httpHandler->render_headers(return_code, data);

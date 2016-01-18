@@ -16,32 +16,33 @@
 class BasicHTTP {
 public:
     struct request {
-        std::string method;
-        std::string uri;
-        std::string cookies;
+        string method;
+        string uri;
+        string cookies;
         DataHandler::resource data;
         bool valid;
+        string http_version;
     };
     struct response {
-        std::string headers;
+        string headers;
         bool has_headers;
     };
 
 private:
     Logger *logger;
-    std::string fetch_cookies(std::string req_str);
+    std::string fetch_cookies(string req_str);
     void handle_get_method(request * req);
-    void handle_post_method(BasicHTTP::request * req, std::string req_str);
+    void handle_post_method(BasicHTTP::request * req, string req_str);
 
 public:
     BasicHTTP(string client);
 	virtual ~BasicHTTP();
-	request  parse_request(std::string req_str);
+	request  parse_request(string req_str);
 	response render_headers(int code, DataHandler::resource rsrc);
 
     class Exception: public BaseException {
         public:
-            Exception(std::string msg = "Unknown basic http exception") {
+            Exception(string msg = "Unknown basic http exception") {
                 this->reason = msg;
             }
     };

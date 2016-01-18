@@ -13,10 +13,10 @@ BasicHTTP::~BasicHTTP() {
     delete(this->logger);
 }
 
-bool is_valid(BasicHTTP::request req, std::string http_ver) {
+bool is_valid(BasicHTTP::request req) {
     // if all tests pass, return true
     return (
-        (http_ver == "HTTP/1.0" || http_ver == "HTTP/1.1")
+        (req.http_version == "HTTP/1.0" || req.http_version == "HTTP/1.1")
         && (req.method == "GET" || req.method == "POST")
         && req.uri.length() > 0
     );
@@ -49,13 +49,13 @@ BasicHTTP::request BasicHTTP::parse_request(std::string req_str) {
     // finally the HTTP version
     std::string http_ver;
     if ((pos = req_str.find("\r\n", prev_pos)) != std::string::npos) {
-        http_ver = req_str.substr(prev_pos, pos-prev_pos);
+        req.http_version = req_str.substr(prev_pos, pos-prev_pos);
         prev_pos = pos + 2;
     }
-    this->logger->debug("Method: " + req.method + ", HTTP version string: " + http_ver + ", URI: " + req.uri);
+    this->logger->debug("Method: " + req.method + ", HTTP version string: " + req.http_version + ", URI: " + req.uri);
 
     // now end with checking if it's actually valid
-    req.valid = is_valid(req, http_ver);
+    req.valid = is_valid(req);
 
     // find and extract cookies, if available
     if (req.valid) {
