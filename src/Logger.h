@@ -22,9 +22,7 @@ private:
 
 public:
 	Logger() {}
-	Logger(string path, string name);
-	// delegation is fun
-	Logger(string name) : Logger(Config::get_str_setting("log_path"), name) {};
+	Logger(string name);
 	virtual ~Logger();
 	void set_postfix(string postfix);
 

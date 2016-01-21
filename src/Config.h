@@ -1,26 +1,33 @@
 #ifndef SRC_CONFIG_H_
 #define SRC_CONFIG_H_
 
+#include <mutex>
 #include "Common.h"
 #include "globals.h"
+#include "Logger.h"
 
 class Config {
 	private:
 		int queue_size;
-        static std::string configString;
-        static std::string delimiter;
-        static std::string configRelevantString;
-        static std::string configLine;
-        static std::string key;
-        static size_t position;
-        static void loadConfigFileToMap();
-	    static void printMapContents();
+        std::string configString;
+        std::string delimiter;
+        std::string configRelevantString;
+        std::string configLine;
+        std::string key;
+        size_t position;
+        void loadConfigFileToMap();
+	    void printMapContents();
+        Config();
+        static Config* configSingleton;
+        static bool isConfigLoggerCreated;
+        std::mutex confMutex;
+
 
 public:
-		Config();
+        static Config* getInstance();
 		virtual ~Config();
-		static int get_int_setting(std::string);
-		static std::string get_str_setting(std::string);
+		int get_int_setting(std::string);
+		std::string get_str_setting(std::string);
 };
 
 class ConfigException: public BaseException {

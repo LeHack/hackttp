@@ -15,8 +15,10 @@
 
 // global
 std::time_t epochTimestamp;
+Config* config;
 
-Logger::Logger(string path, string name) {
+Logger::Logger(string name) {
+    config = Config::getInstance();
     isLoggingToFileEnabled = true;
     std::map<string, int > map;
     map.insert(pair<string, int>("QUIET", 0));
@@ -25,9 +27,9 @@ Logger::Logger(string path, string name) {
     map.insert(pair<string, int>("DEBUG", 3));
     std::string loggerStatus;
     const char* cLoggerStatus;
-    this->current_log_level = map.at(Config::get_str_setting("current_log_level"));
+    this->current_log_level = map.at(config->get_str_setting("current_log_level"));
     this->class_name = name;
-    log_path = path;
+    log_path = config->get_str_setting("log_path");
     logFileDescriptor = open(log_path.c_str(), O_WRONLY | O_APPEND | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP );
 
     if(logFileDescriptor < 0){

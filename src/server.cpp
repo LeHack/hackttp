@@ -16,16 +16,16 @@
 
 int main() {
 	// Init basic classes
-	CmdLine cmdline;
-	Config config;
+    CmdLine cmdline;
+	Config* config = Config::getInstance();
     Logger logger("Server");
     SignalHandler signalHandler;
 
     logger.info("Process id: " + std::to_string(getpid()));
-    if(config.get_str_setting("start_full_server") == "true") {
+    if(config->get_str_setting("start_full_server") == "true") {
         // starting the full server
-        std::string port = config.get_str_setting("port");
-        int queue_size   = config.get_int_setting("queue_size");
+        std::string port = config->get_str_setting("port");
+        int queue_size   = config->get_int_setting("queue_size");
         logger.info("Starting HackTTP at port: " + port);
 
         try {

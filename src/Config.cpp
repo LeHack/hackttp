@@ -15,12 +15,18 @@
 std::map<string, string> configMap;
 
 Logger *logger;
+
+Config* Config::getInstance() {
+    static Config configSingleton;
+    return &configSingleton;
+}
+
 Config::Config() {
     queue_size = 10;
     loadConfigFileToMap();
-    logger = new Logger("Config");
-    logger->debug("Ready");
+
 }
+
 
 
 void Config::loadConfigFileToMap(){
@@ -83,6 +89,7 @@ Config::~Config() {
 
 
 int Config::get_int_setting(std::string setting_name) {
+    confMutex.lock();
     if(isSigusr1Received){
         Config::loadConfigFileToMap();
         Config::printMapContents();
@@ -96,11 +103,13 @@ int Config::get_int_setting(std::string setting_name) {
 	} catch (invalid_argument){
         throw ConfigException("Error parsing config to int, check config file syntax at " + setting_name);
     }
+    confMutex.unlock();
 	return returnInt;
 }
 
 
 std::string Config::get_str_setting(std::string setting_name) {
+    confMutex.lock();
     if(isSigusr1Received){
         Config::loadConfigFileToMap();
         Config::printMapContents();
@@ -113,5 +122,6 @@ std::string Config::get_str_setting(std::string setting_name) {
     } catch (out_of_range) {
         throw ConfigException("Unknown string option passed: " + setting_name);
     }
+    confMutex.unlock();
     return returnString;
 }
