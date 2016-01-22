@@ -87,14 +87,19 @@ Config::~Config() {
     delete(logger);
 }
 
-
-int Config::get_int_setting(std::string setting_name) {
-    confMutex.lock();
-    if(isSigusr1Received){
+void Config::reload_on_usr1() {
+    while (isSigusr1Received) {
+        confMutex.lock();
+        if (!isSigusr1Received) break;
         Config::loadConfigFileToMap();
         Config::printMapContents();
         isSigusr1Received = false;
+        confMutex.unlock();
     }
+}
+
+int Config::get_int_setting(std::string setting_name) {
+    reload_on_usr1();
 	int returnInt = -1;
     try {
         returnInt = std::stoi(configMap.at(setting_name));
@@ -103,25 +108,17 @@ int Config::get_int_setting(std::string setting_name) {
 	} catch (invalid_argument){
         throw ConfigException("Error parsing config to int, check config file syntax at " + setting_name);
     }
-    confMutex.unlock();
 	return returnInt;
 }
 
 
 std::string Config::get_str_setting(std::string setting_name) {
-    confMutex.lock();
-    if(isSigusr1Received){
-        Config::loadConfigFileToMap();
-        Config::printMapContents();
-        isSigusr1Received = false;
-    }
+    reload_on_usr1();
     std::string returnString;
-
     try{
         returnString = configMap.at(setting_name);
     } catch (out_of_range) {
         throw ConfigException("Unknown string option passed: " + setting_name);
     }
-    confMutex.unlock();
     return returnString;
 }

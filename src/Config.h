@@ -16,6 +16,7 @@ class Config {
         std::string key;
         size_t position;
         void loadConfigFileToMap();
+        void reload_on_usr1();
 	    void printMapContents();
         Config();
         static Config* configSingleton;
