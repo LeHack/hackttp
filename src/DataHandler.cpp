@@ -1,6 +1,7 @@
 #include "DataHandler.h"
 
 #include <linux/limits.h>
+#include <fcntl.h>
 #include <unistd.h>
 
 /*
@@ -54,6 +55,14 @@ DataHandler::resource DataHandler::read_resource(std::string path, std::string c
     std::string cwd = get_working_path();
     path = cwd + path;
     this->logger->debug("Checking resource at: " + path);
+
+    // first check if such a file even exists
+    int fd = open(path.c_str(), O_RDONLY);
+    if (fd < 0) {
+        char * err = std::strerror(errno);
+        throw DataHandler::FileNotFound("Error while reading file contents at " + path + ": " + std::string(err ? err : "unknown error"));
+    }
+    close(fd);
 
     // check mime type of resource
     DataHandler::Exec runner;
